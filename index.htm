@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STUDY DESK · 컴활 1급 스터디 플래너</title>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F3EC;
+    --paper:#FFFEFA;
+    --surface:#FFFFFF;
+    --surface-soft:#EAF0E7;
+    --ink:#23261F;
+    --ink-soft:#75796E;
+    --ink-faint:#B9BDAE;
+    --line:#E4E0D2;
+    --green:#3D6B4C;
+    --green-deep:#2A4C36;
+    --green-soft:#E1EEE3;
+    --gold:#B8842E;
+    --gold-soft:#F5EAD3;
+    --red:#B23A2F;
+    --red-soft:#F6E1DD;
+    --blue:#3E5C8A;
+    --blue-soft:#E4E9F3;
+    --radius:12px;
+    --font-display:'Space Grotesk','Pretendard',sans-serif;
+    --font-body:'Pretendard',-apple-system,sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+    --shadow:0 1px 2px rgba(35,38,31,.05), 0 8px 22px rgba(35,38,31,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    background-image:radial-gradient(circle at 1px 1px, rgba(35,38,31,.05) 1px, transparent 0);
+    background-size:22px 22px;
+  }
+  ::selection{background:var(--green-soft);color:var(--green-deep);}
+
+  .app-shell{max-width:1180px;margin:0 auto;padding:26px 20px 90px;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-badge{
+    width:42px;height:42px;border-radius:10px;background:var(--green);
+    display:flex;align-items:center;justify-content:center;color:#fff;
+    font-family:var(--font-mono);font-weight:700;font-size:15px;flex-shrink:0;box-shadow:var(--shadow);
+  }
+  .brand-text h1{font-family:var(--font-display);font-size:19px;font-weight:700;margin:0;color:var(--green-deep);letter-spacing:-.01em;}
+  .brand-text p{margin:2px 0 0;font-size:12.5px;color:var(--ink-soft);}
+
+  .dday-ticket{
+    display:flex;align-items:center;gap:12px;background:var(--paper);
+    border:1.5px dashed var(--ink-faint);border-radius:10px;padding:9px 16px 9px 12px;
+    position:relative;box-shadow:var(--shadow);
+  }
+  .dday-ticket:before,.dday-ticket:after{content:'';position:absolute;width:12px;height:12px;background:var(--bg);border-radius:50%;top:50%;transform:translateY(-50%);}
+  .dday-ticket:before{left:-6px;}
+  .dday-ticket:after{right:-6px;}
+  .dday-label{font-size:10.5px;color:var(--ink-soft);font-weight:600;letter-spacing:.04em;}
+  .dday-num{font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--red);line-height:1;}
+  .dday-num.far{color:var(--green-deep);}
+  .dday-edit-btn{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:12px;padding:2px;}
+  .dday-edit-btn:hover{color:var(--green-deep);}
+
+  .auth-box{display:flex;align-items:center;gap:8px;}
+  .auth-signed-in{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:5px 12px 5px 5px;box-shadow:var(--shadow);}
+  .auth-avatar{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:var(--surface-soft);}
+  .auth-name{font-size:12px;font-weight:600;color:var(--ink);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .auth-signout-btn{background:none;border:none;color:var(--ink-faint);font-size:11px;cursor:pointer;padding:2px 4px;}
+  .auth-signout-btn:hover{color:var(--red);}
+  .auth-sync-note{font-size:10.5px;color:var(--ink-faint);}
+
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px;}
+  .tab-btn{font-family:var(--font-body);font-size:13.5px;font-weight:600;color:var(--ink-soft);background:transparent;border:none;padding:9px 15px;border-radius:9px;cursor:pointer;white-space:nowrap;}
+  .tab-btn:hover{background:var(--surface-soft);}
+  .tab-btn.active{background:var(--green);color:#fff;}
+
+  .view{display:none;}
+  .view.active{display:block;animation:fadein .18s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .panel-pad{padding:20px;}
+  .section-title{font-family:var(--font-display);font-size:15.5px;font-weight:700;color:var(--green-deep);margin:0 0 14px;}
+
+  .btn{font-family:var(--font-body);font-size:13px;font-weight:600;border-radius:8px;padding:9px 15px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;transition:filter .15s;}
+  .btn:hover{filter:brightness(.97);}
+  .btn-primary{background:var(--green);border-color:var(--green);color:#fff;}
+  .btn-primary:hover{background:var(--green-deep);}
+  .btn-ghost{background:transparent;border-color:transparent;color:var(--green-deep);}
+  .btn-danger{background:transparent;border-color:var(--red);color:var(--red);}
+  .btn-danger:hover{background:var(--red-soft);}
+  .btn-sm{padding:6px 11px;font-size:12px;}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+  label{font-size:12px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:5px;}
+  input[type=text],input[type=date],input[type=url],input[type=number],input[type=password],select,textarea{
+    width:100%;font-family:var(--font-body);font-size:14px;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;
+  }
+  textarea{resize:vertical;min-height:80px;line-height:1.55;}
+  .field{margin-bottom:14px;}
+  .field-row{display:flex;gap:12px;flex-wrap:wrap;}
+  .field-row > .field{flex:1;min-width:150px;}
+
+  /* ---------- Dashboard ---------- */
+  .dash-grid{display:grid;grid-template-columns:270px 1fr;gap:18px;align-items:start;margin-bottom:18px;}
+  @media(max-width:820px){ .dash-grid{grid-template-columns:1fr;} }
+
+  .ring-wrap{display:flex;flex-direction:column;align-items:center;padding:22px 16px;}
+  .ring-caption{margin-top:10px;font-size:12.5px;color:var(--ink-soft);text-align:center;}
+  .ring-num{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--green-deep);}
+
+  .mini-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+  .mini-stat{background:var(--surface-soft);border-radius:9px;padding:10px 12px;text-align:center;}
+  .mini-stat .n{font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--green-deep);}
+  .mini-stat .l{font-size:10.5px;color:var(--ink-soft);margin-top:2px;}
+
+  .subject-progress-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .subject-progress-row:last-child{margin-bottom:0;}
+  .subject-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .subject-progress-name{font-size:13px;font-weight:600;flex:0 0 128px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .subject-progress-bar{flex:1;height:8px;background:var(--surface-soft);border-radius:5px;overflow:hidden;}
+  .subject-progress-fill{height:100%;border-radius:5px;}
+  .subject-progress-pct{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);flex:0 0 40px;text-align:right;}
+
+  .todo-today-list{margin-top:2px;}
+  .todo-mini{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .todo-mini:last-child{border-bottom:none;}
+  .todo-mini.done{color:var(--ink-faint);text-decoration:line-through;}
+
+  /* ---------- Stopwatch (on dashboard) ---------- */
+  .sw-cal-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:stretch;}
+  @media(max-width:980px){ .sw-cal-grid{grid-template-columns:1fr;} }
+  .sw-cal-grid > .panel{display:flex;flex-direction:column;}
+  .sw-cal-grid > .panel .sw-layout{flex:1;align-content:center;}
+
+  .sw-layout{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start;}
+  @media(max-width:640px){ .sw-layout{grid-template-columns:1fr;} }
+
+  .sess-mini-log-title{font-size:12px;font-weight:700;color:var(--green-deep);margin-bottom:8px;}
+  .sess-mini-log .session-log-scroll{max-height:280px;}
+
+  .sw-display{font-family:var(--font-mono);font-size:40px;font-weight:700;color:var(--green-deep);text-align:center;padding:14px 0 6px;letter-spacing:.02em;}
+  .sw-sub{text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
+  .sw-btn-row{display:flex;gap:8px;justify-content:center;}
+  .sw-btn{font-family:var(--font-body);font-weight:700;border-radius:50%;width:52px;height:52px;border:none;cursor:pointer;font-size:12.5px;}
+  .sw-btn-start{background:var(--green);color:#fff;}
+  .sw-btn-stop{background:var(--red);color:#fff;}
+  .sw-btn-reset{background:var(--surface-soft);color:var(--ink);}
+  .session-day-group{margin-bottom:14px;}
+  .session-day-group:last-child{margin-bottom:0;}
+  .session-day-label{font-family:var(--font-mono);font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.03em;}
+  .session-row{display:flex;justify-content:space-between;align-items:center;padding:7px 9px;border-radius:7px;background:var(--surface-soft);margin-bottom:5px;font-size:12.5px;}
+  .session-subject{font-weight:600;}
+  .session-dur{font-family:var(--font-mono);color:var(--green-deep);font-weight:700;}
+  .session-del{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:11px;margin-left:8px;}
+  .session-log-scroll{max-height:230px;overflow-y:auto;}
+
+  .session-view-toggle{display:flex;gap:6px;margin-bottom:10px;}
+  .view-toggle-btn.active{background:var(--green);border-color:var(--green);color:#fff;}
+  .sess-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .sess-cal-head span{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--green-deep);}
+  .sess-cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
+  .sess-cal-dow{text-align:center;font-size:10px;color:var(--ink-faint);font-weight:700;}
+  .sess-cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .sess-cal-day{aspect-ratio:1;border-radius:7px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:10px;padding:2px;}
+  .sess-cal-day.out{cursor:default;border-color:transparent;}
+  .sess-cal-day .scd-num{font-family:var(--font-mono);font-weight:700;}
+  .sess-cal-day .scd-min{font-size:8.5px;margin-top:1px;}
+
+  /* ---------- Lecture room ---------- */
+  .lec-layout{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
+  @media(max-width:900px){ .lec-layout{grid-template-columns:1fr;} }
+  .subject-chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .subject-chip{font-size:12px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:20px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:5px;}
+  .subject-chip.active{background:var(--green);border-color:var(--green);color:#fff;}
+  .subject-chip .cdot{width:8px;height:8px;border-radius:50%;}
+
+  .lec-list{max-height:540px;overflow-y:auto;}
+  .lec-item{display:flex;align-items:flex-start;gap:9px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer;}
+  .lec-item:hover{background:var(--surface-soft);}
+  .lec-item.playing{background:var(--green-soft);}
+  .lec-check{flex-shrink:0;width:18px;height:18px;margin-top:2px;border-radius:5px;border:1.5px solid var(--ink-faint);background:#fff;cursor:pointer;position:relative;appearance:none;-webkit-appearance:none;}
+  .lec-check:checked{background:var(--green);border-color:var(--green);}
+  .lec-check:checked::after{content:'✓';position:absolute;top:-2px;left:2px;color:#fff;font-size:12px;font-weight:700;}
+  .lec-title{flex:1;font-size:13px;line-height:1.5;word-break:keep-all;}
+  .lec-item.playing .lec-title{font-weight:700;color:var(--green-deep);}
+  .lec-title.done-text{color:var(--ink-faint);text-decoration:line-through;}
+  .lec-del{flex-shrink:0;background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:12px;}
+  .lec-del:hover{color:var(--red);}
+
+  .player-wrap{position:relative;width:100%;padding-top:56.25%;background:#1c1c1c;border-radius:10px;overflow:hidden;margin-bottom:12px;}
+  .player-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
+  .player-wrap #lecPlayerDiv{position:absolute;top:0;left:0;width:100%;height:100%;}
+  .player-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8a8f83;font-size:13px;flex-direction:column;gap:8px;}
+  .player-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+  .player-meta{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
+
+  .empty-state{padding:36px 18px;text-align:center;color:var(--ink-faint);font-size:13px;}
+
+  /* ---------- Planner ---------- */
+  .planner-layout{display:grid;grid-template-columns:1fr 280px;gap:18px;align-items:start;}
+  @media(max-width:820px){ .planner-layout{grid-template-columns:1fr;} }
+  .todo-date-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .todo-item{display:flex;align-items:flex-start;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line);}
+  .todo-item:last-child{border-bottom:none;}
+  .todo-check{flex-shrink:0;width:18px;height:18px;margin-top:1px;border-radius:5px;border:1.5px solid var(--ink-faint);background:#fff;cursor:pointer;position:relative;appearance:none;-webkit-appearance:none;}
+  .todo-check:checked{background:var(--green);border-color:var(--green);}
+  .todo-check:checked::after{content:'✓';position:absolute;top:-2px;left:2px;color:#fff;font-size:12px;font-weight:700;}
+  .todo-text{flex:1;font-size:13.5px;line-height:1.5;word-break:break-word;}
+  .todo-item.done .todo-text{color:var(--ink-faint);text-decoration:line-through;}
+  .todo-del{flex-shrink:0;background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;}
+  .todo-del:hover{color:var(--red);}
+  .todo-add-row{display:flex;gap:6px;margin-top:10px;}
+  .todo-add-row input{flex:1;}
+  .streak-box{background:var(--surface-soft);border-radius:10px;padding:14px;margin-bottom:14px;}
+  .streak-box .n{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--green-deep);}
+  .streak-box .l{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+
+  /* ---------- Chat / AI planner ---------- */
+  .chat-window{background:var(--surface-soft);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:320px;max-height:460px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+  .chat-bubble{max-width:82%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;}
+  .chat-bubble.user{align-self:flex-end;background:var(--green);color:#fff;border-bottom-right-radius:4px;}
+  .chat-bubble.assistant{align-self:flex-start;background:#fff;border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:4px;}
+  .chat-bubble.pending{align-self:flex-start;background:#fff;border:1px solid var(--line);color:var(--ink-faint);font-style:italic;}
+  .chat-empty{color:var(--ink-faint);font-size:13px;text-align:center;margin:auto;}
+  .chat-input-row{display:flex;gap:8px;margin-top:12px;align-items:flex-end;}
+  .chat-input-row textarea{flex:1;min-height:52px;max-height:130px;}
+  .quick-prompt-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .quick-prompt-btn{font-size:12px;font-weight:600;background:var(--gold-soft);color:var(--gold);border:none;border-radius:16px;padding:6px 12px;cursor:pointer;}
+  .chat-bubble strong{color:var(--green-deep);}
+
+  /* ---------- Import list ---------- */
+  .import-row{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--line);}
+  .import-row:last-child{border-bottom:none;}
+  .import-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0;}
+  .import-row .imp-title{flex:1;font-size:12.5px;line-height:1.4;word-break:keep-all;}
+  .import-row select{flex:0 0 150px;font-size:12px;padding:5px 6px;}
+  .import-list-scroll{max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:4px 8px;margin:10px 0;}
+  .import-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+  .import-toolbar select{flex:0 0 auto;width:auto;}
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(35,38,31,.42);display:none;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  .modal-backdrop.open{display:flex;}
+  .modal{background:#fff;border-radius:14px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  .modal.modal-wide{max-width:680px;}
+  .modal h3{margin:0 0 14px;font-size:16.5px;font-family:var(--font-display);color:var(--green-deep);}
+  .modal-close-row{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+  .save-hint{font-size:11px;color:var(--ink-faint);margin-top:6px;}
+  .import-status{font-size:12.5px;font-weight:600;margin-top:8px;}
+
+  /* ---------- Theme ---------- */
+  .color-field-row{display:flex;align-items:center;gap:10px;}
+  .color-field-row input[type=color]{
+    -webkit-appearance:none;appearance:none;width:38px;height:34px;padding:2px;
+    border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;flex-shrink:0;
+  }
+  .color-field-row input[type=color]::-webkit-color-swatch-wrapper{padding:0;}
+  .color-field-row input[type=color]::-webkit-color-swatch{border:none;border-radius:6px;}
+  .color-field-row input[type=text]{flex:1;}
+  .theme-bg-preview{
+    width:100%;height:120px;border-radius:10px;border:1px solid var(--line);background-size:cover;background-position:center;
+    background-color:var(--surface-soft);display:flex;align-items:center;justify-content:center;color:var(--ink-faint);
+    font-size:12px;margin-bottom:10px;
+  }
+
+  /* ---------- Mock exam ---------- */
+  .subtabs{display:flex;gap:6px;margin-bottom:16px;}
+  .subtab-btn{font-size:13px;font-weight:600;color:var(--ink-soft);background:var(--surface-soft);border:none;padding:8px 15px;border-radius:20px;cursor:pointer;}
+  .subtab-btn.active{background:var(--green-deep);color:#fff;}
+  .msubview{display:none;}
+  .msubview.active{display:block;animation:fadein .18s ease;}
+
+  .mock-crop-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px;color:var(--ink-soft);}
+  .mock-crop-toolbar select, .mock-crop-toolbar input{width:auto;padding:6px 8px;font-size:12.5px;}
+  .mock-canvas-wrap{position:relative;width:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#efece2;max-height:640px;cursor:crosshair;user-select:none;}
+  .mock-canvas-wrap canvas{display:block;}
+  .mock-crop-box{position:absolute;border:2px dashed var(--green);background:rgba(61,107,76,.15);display:none;pointer-events:none;}
+
+  .mock-crop-preview-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+  .mock-crop-preview-img{max-width:220px;max-height:220px;border:1px solid var(--line);border-radius:8px;background:#fff;object-fit:contain;}
+
+  .mock-q-subject-group{margin-bottom:14px;}
+  .mock-q-subject-group:last-child{margin-bottom:0;}
+  .mock-q-subject-head{font-size:12.5px;font-weight:700;color:var(--green-deep);margin-bottom:6px;}
+  .mock-q-row{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--line);}
+  .mock-q-row:last-child{border-bottom:none;}
+  .mock-q-thumb{width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--line);flex-shrink:0;background:#fff;}
+  .mock-q-label{flex:1;font-size:12.5px;}
+  .mock-q-label .badge{display:inline-block;font-size:10.5px;padding:1px 6px;border-radius:9px;margin-left:6px;}
+  .mock-q-label .badge.wrong{background:var(--red-soft);color:var(--red);}
+  .mock-q-label .badge.right{background:var(--green-soft);color:var(--green-deep);}
+  .mock-q-del{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:12px;}
+  .mock-q-del:hover{color:var(--red);}
+
+  .mock-solve-summary{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .mock-solve-summary .mini-stat{flex:1;min-width:110px;}
+
+  .mock-quiz-progress{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);text-align:center;margin-bottom:10px;}
+  .mock-quiz-img-wrap{width:100%;text-align:center;background:var(--surface-soft);border-radius:10px;padding:12px;margin-bottom:14px;}
+  .mock-quiz-img-wrap img{max-width:100%;border-radius:6px;background:#fff;}
+  .mock-quiz-answer-area{text-align:center;}
+  .mock-quiz-answer-reveal{font-size:14px;margin-bottom:12px;}
+  .mock-quiz-answer-reveal b{color:var(--green-deep);font-family:var(--font-mono);}
+  .mock-quiz-grade-row{display:flex;gap:10px;}
+  .mock-quiz-grade-row .btn{flex:1;padding:12px;font-size:14px;}
+  .mock-quiz-done{text-align:center;padding:30px 10px;color:var(--ink-soft);font-size:14px;}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;z-index:60;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .ai-fab{
+    position:fixed;right:22px;bottom:22px;width:54px;height:54px;border-radius:50%;
+    background:var(--green);color:#fff;border:none;font-size:22px;cursor:pointer;
+    box-shadow:0 10px 26px rgba(42,76,54,.35);z-index:42;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ai-fab:hover{background:var(--green-deep);}
+  .ai-fab:active{transform:scale(.94);}
+
+  .ai-chat-panel{
+    position:fixed;right:20px;bottom:88px;width:336px;max-width:calc(100vw - 28px);
+    background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    box-shadow:0 22px 54px rgba(35,38,31,.28);z-index:41;overflow:hidden;
+    display:flex;flex-direction:column;
+    transform:translateY(14px) scale(.96);opacity:0;pointer-events:none;
+    transition:transform .16s ease, opacity .16s ease;
+  }
+  .ai-chat-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto;}
+  .ai-chat-panel-head{
+    background:var(--green);color:#fff;padding:12px 14px;font-weight:700;font-size:13.5px;
+    display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  }
+  .ai-chat-close{background:none;border:none;color:#fff;font-size:14px;cursor:pointer;opacity:.85;padding:2px 4px;}
+  .ai-chat-close:hover{opacity:1;}
+  .ai-chat-panel-quick{padding:10px 10px 0;margin:0;}
+  .ai-chat-panel-quick .quick-prompt-btn{font-size:11px;padding:5px 9px;}
+  .ai-chat-panel-window{
+    flex:1;min-height:280px;max-height:340px;border-radius:0;border:none;
+    background:var(--bg);margin:10px 10px 0;border-radius:10px;
+  }
+  .ai-chat-panel-input{padding:10px;flex-shrink:0;margin:0;}
+  .ai-chat-panel-input textarea{min-height:38px;max-height:76px;font-size:12.5px;padding:8px 9px;}
+  .ai-chat-panel-input .btn{flex-shrink:0;}
+  @media(max-width:480px){
+    .ai-chat-panel{right:12px;left:12px;width:auto;bottom:82px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-badge">1급</div>
+      <div class="brand-text">
+        <h1>STUDY DESK</h1>
+        <p>컴활 1급 스터디 플래너</p>
+      </div>
+    </div>
+    <div class="auth-box" id="authBox">
+      <button class="btn btn-sm" id="authSignInBtn">Google로 로그인</button>
+    </div>
+    <div class="dday-ticket">
+      <div>
+        <div class="dday-label">시험일까지</div>
+        <div class="dday-num" id="ddayNum">D-?</div>
+      </div>
+      <button class="dday-edit-btn" id="ddayEditBtn" title="시험일 설정">✎ 설정</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">홈</button>
+    <button class="tab-btn" data-tab="lectures">강의실</button>
+    <button class="tab-btn" data-tab="mock">모의고사</button>
+    <button class="tab-btn" data-tab="planner">플래너</button>
+    <button class="tab-btn" data-tab="ai">AI</button>
+    <button class="tab-btn" data-tab="theme">테마</button>
+    <button class="tab-btn" data-tab="backup">백업</button>
+  </div>
+
+  <!-- ================= DASHBOARD (HOME) ================= -->
+  <div class="view active" id="view-dashboard">
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="ring-wrap">
+          <svg id="ringSvg" width="150" height="150" viewBox="0 0 150 150">
+            <circle cx="75" cy="75" r="62" fill="none" stroke="#EAF0E7" stroke-width="14"/>
+            <circle id="ringFg" cx="75" cy="75" r="62" fill="none" stroke="#3D6B4C" stroke-width="14" stroke-linecap="round" transform="rotate(-90 75 75)"/>
+          </svg>
+          <div class="ring-num" id="ringNum">0%</div>
+          <div class="ring-caption">전체 강의 진도율<br><span id="ringSubCaption">0 / 0 강의 시청완료</span></div>
+          <div class="mini-stat-row">
+            <div class="mini-stat"><div class="n" id="statTodayTime">0분</div><div class="l">오늘 공부시간</div></div>
+            <div class="mini-stat"><div class="n" id="statTodoDone">0/0</div><div class="l">오늘 할일</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-pad">
+        <div class="section-title">과목별 진도율</div>
+        <div id="subjectProgressList"></div>
+        <div style="height:1px;background:var(--line);margin:18px 0;"></div>
+        <div class="section-title" style="margin-bottom:10px;">오늘 할 일</div>
+        <div class="todo-today-list" id="dashTodoList"></div>
+      </div>
+    </div>
+
+    <div class="sw-cal-grid">
+      <div class="panel panel-pad">
+        <div class="section-title">스톱워치 · 공부 기록</div>
+        <div class="sw-layout">
+          <div>
+            <div class="field"><label>공부 과목</label><select id="swSubjectSelect"></select></div>
+            <div class="sw-display" id="swDisplay">00:00:00</div>
+            <div class="sw-sub" id="swStatusText">대기 중</div>
+            <div class="sw-btn-row">
+              <button class="sw-btn sw-btn-start" id="swStartBtn">시작</button>
+              <button class="sw-btn sw-btn-stop" id="swStopBtn" style="display:none;">종료</button>
+              <button class="sw-btn sw-btn-reset" id="swResetBtn">초기화</button>
+            </div>
+          </div>
+          <div class="sess-mini-log">
+            <div class="sess-mini-log-title">공부 세션</div>
+            <div class="session-log-scroll" id="sessionLog"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-pad">
+        <div class="section-title">공부 캘린더</div>
+        <div class="sess-cal-head">
+          <button class="btn btn-sm" id="sessCalPrev">‹</button>
+          <span id="sessCalTitle"></span>
+          <button class="btn btn-sm" id="sessCalNext">›</button>
+        </div>
+        <div id="sessCalGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LECTURES ================= -->
+  <div class="view" id="view-lectures">
+    <div class="lec-layout">
+      <div class="panel panel-pad">
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>과목</span>
+          <button class="btn btn-ghost btn-sm" id="subjectManageBtn">과목 관리</button>
+        </div>
+        <div class="subject-chip-row" id="subjectChipRow"></div>
+        <div class="btn-row" style="margin-bottom:12px;">
+          <button class="btn btn-primary btn-sm" id="lecImportBtn">재생목록 자동 가져오기</button>
+          <button class="btn btn-sm" id="lecAddBtn">+ 강의 1개 추가</button>
+          <button class="btn btn-sm" id="lecBulkAddBtn">＋ 텍스트로 여러 개 추가</button>
+        </div>
+        <div class="lec-list" id="lecList"></div>
+      </div>
+      <div class="panel panel-pad">
+        <div class="player-wrap" id="playerWrap">
+          <div class="player-empty">▶ 왼쪽 목록에서 강의를 선택하면 여기서 재생돼요</div>
+        </div>
+        <div class="player-title" id="playerTitle"></div>
+        <div class="player-meta" id="playerMeta"></div>
+        <div class="btn-row" id="playerActions" style="display:none;">
+          <button class="btn btn-primary btn-sm" id="playerMarkDoneBtn">✓ 시청완료로 표시</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MOCK EXAM ================= -->
+  <div class="view" id="view-mock">
+    <div class="subtabs" id="mockSubtabs">
+      <button class="subtab-btn active" data-msub="make">문제 만들기</button>
+      <button class="subtab-btn" data-msub="solve">문제 풀기</button>
+    </div>
+
+    <!-- 문제 만들기 -->
+    <div class="msubview active" id="msub-make">
+      <div class="panel panel-pad" style="margin-bottom:14px;">
+        <div class="save-hint" style="margin-bottom:10px;line-height:1.7;">
+          PDF를 올리면 페이지가 이미지로 보여요. 문제 하나를 마우스로 드래그해서 사각형으로 선택하면 그 부분만 잘려서 저장돼요.
+          완전 자동 인식은 정확도가 낮아서, 이렇게 직접 자르는 방식으로 만들었어요 — 익숙해지면 문제 하나당 몇 초면 끝나요.
+        </div>
+        <div class="field"><input type="file" id="mockPdfInput" accept="application/pdf"></div>
+        <div id="mockPdfNav" style="display:none;">
+          <div class="btn-row" style="margin:10px 0;align-items:center;">
+            <button class="btn btn-sm" id="mockPrevPageBtn">‹ 이전 페이지</button>
+            <span id="mockPageLabel" style="font-family:var(--font-mono);font-size:12.5px;color:var(--ink-soft);"></span>
+            <button class="btn btn-sm" id="mockNextPageBtn">다음 페이지 ›</button>
+          </div>
+          <div class="mock-crop-toolbar">
+            <label style="margin:0;">기본 과목</label>
+            <select id="mockDefaultSubject" style="width:auto;"></select>
+            <label style="margin:0;">다음 문제 번호</label>
+            <input type="text" id="mockNextLabel" style="width:70px;" value="1">
+          </div>
+          <div class="mock-canvas-wrap" id="mockCanvasWrap">
+            <canvas id="mockPageCanvas"></canvas>
+            <div class="mock-crop-box" id="mockCropBox"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-pad" id="mockCropFormPanel" style="display:none;margin-bottom:14px;">
+        <div class="section-title" style="margin-bottom:10px;">방금 자른 문제 저장</div>
+        <div class="mock-crop-preview-row">
+          <img id="mockCropPreviewImg" class="mock-crop-preview-img">
+          <div style="flex:1;min-width:180px;">
+            <div class="field"><label>과목</label><select id="mockFormSubject"></select></div>
+            <div class="field-row">
+              <div class="field"><label>문제 번호/라벨</label><input type="text" id="mockFormLabel" placeholder="예: 1번"></div>
+              <div class="field"><label>정답</label><input type="text" id="mockFormAnswer" placeholder="예: 3"></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary btn-sm" id="mockSaveQBtn">저장하고 다음 문제 자르기</button>
+              <button class="btn btn-ghost btn-sm" id="mockDiscardQBtn">취소</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-pad">
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>저장된 문제 (<span id="mockQCount">0</span>개)</span>
+        </div>
+        <div id="mockQManageList"></div>
+      </div>
+    </div>
+
+    <!-- 문제 풀기 -->
+    <div class="msubview" id="msub-solve">
+      <div class="panel panel-pad" style="margin-bottom:14px;">
+        <div class="field-row" style="align-items:flex-end;">
+          <div class="field"><label>과목</label><select id="mockSolveSubject"><option value="all">전체</option></select></div>
+          <div class="field"><label>범위</label><select id="mockSolveScope"><option value="all">전체 문제</option><option value="wrong">오답노트만</option></select></div>
+          <button class="btn btn-primary" id="mockStartBtn" style="flex:0 0 auto;">시작하기</button>
+        </div>
+        <div id="mockSolveSummary" class="mock-solve-summary"></div>
+      </div>
+
+      <div class="panel panel-pad" id="mockQuizArea" style="display:none;">
+        <div class="mock-quiz-progress" id="mockQuizProgress"></div>
+        <div class="mock-quiz-img-wrap"><img id="mockQuizImg"></div>
+        <div id="mockQuizAnswerArea" class="mock-quiz-answer-area">
+          <button class="btn btn-primary" id="mockRevealBtn" style="width:100%;">정답 확인</button>
+        </div>
+      </div>
+      <div class="empty-state" id="mockQuizEmpty">위에서 과목과 범위를 고르고 "시작하기"를 눌러보세요.</div>
+    </div>
+  </div>
+
+  <!-- ================= PLANNER ================= -->
+  <div class="view" id="view-planner">
+    <div class="planner-layout">
+      <div class="panel panel-pad">
+        <div class="todo-date-head">
+          <div class="section-title" style="margin:0;" id="todoDateTitle">오늘 할 일</div>
+          <input type="date" id="todoDateInput">
+        </div>
+        <div id="todoList"></div>
+        <div class="todo-add-row">
+          <input type="text" id="todoInput" placeholder="할 일 추가 후 Enter">
+          <button class="btn btn-primary btn-sm" id="todoAddBtn">추가</button>
+        </div>
+      </div>
+      <div>
+        <div class="panel panel-pad" style="margin-bottom:14px;">
+          <div class="streak-box">
+            <div class="n" id="allTodoDoneCount">0</div>
+            <div class="l">누적 완료한 할 일</div>
+          </div>
+          <div class="section-title" style="margin-bottom:8px;">시험일 설정</div>
+          <div class="field"><input type="date" id="examDateInput"></div>
+          <button class="btn btn-primary btn-sm" id="examDateSaveBtn" style="width:100%;">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= AI PLANNER ================= -->
+  <div class="view" id="view-ai">
+    <div class="panel panel-pad">
+      <div class="section-title">AI 학습플래너</div>
+      <div class="quick-prompt-row">
+        <button class="quick-prompt-btn" data-quick="week">이번주 학습계획 짜줘</button>
+        <button class="quick-prompt-btn" data-quick="weak">진도 느린 과목 점검해줘</button>
+        <button class="quick-prompt-btn" data-quick="motivate">동기부여 한마디</button>
+        <button class="quick-prompt-btn" data-quick="checkin">지금 상황 체크</button>
+      </div>
+      <div class="chat-window" id="chatWindow">
+        <div class="chat-empty">현재 진도율·D-day·오늘 할일을 참고해서 계획을 짜줄 수 있어요. 위 버튼을 누르거나 직접 물어보세요.</div>
+      </div>
+      <div class="chat-input-row">
+        <textarea id="chatInput" placeholder="예: 이번주 시간이 별로 없는데 뭐부터 봐야할까?"></textarea>
+        <button class="btn btn-primary" id="chatSendBtn">보내기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= THEME ================= -->
+  <div class="view" id="view-theme">
+    <div class="panel panel-pad">
+      <div class="section-title">테마 설정</div>
+      <div class="field-row">
+        <div class="field">
+          <label>메인 색상</label>
+          <div class="color-field-row">
+            <input type="color" id="themePrimaryPicker">
+            <input type="text" id="themePrimaryText" placeholder="#RRGGBB">
+          </div>
+        </div>
+        <div class="field">
+          <label>서브 색상</label>
+          <div class="color-field-row">
+            <input type="color" id="themeAccentPicker">
+            <input type="text" id="themeAccentText" placeholder="#RRGGBB">
+          </div>
+        </div>
+      </div>
+      <div style="height:1px;background:var(--line);margin:16px 0;"></div>
+      <label>배경 이미지</label>
+      <div class="theme-bg-preview" id="themeBgPreview">설정된 배경 이미지가 없어요</div>
+      <div class="field"><input type="url" id="themeBgUrlInput" placeholder="이미지 URL 붙여넣기"></div>
+      <div class="btn-row" style="margin-bottom:14px;">
+        <button class="btn btn-sm" id="themeBgUrlApplyBtn">URL 적용</button>
+        <label class="btn btn-sm" for="themeBgFileInput" style="margin:0;">파일 업로드</label>
+        <input type="file" id="themeBgFileInput" accept="image/*" style="display:none;">
+        <button class="btn btn-ghost btn-sm" id="themeBgClearBtn">배경 이미지 제거</button>
+      </div>
+      <div class="field">
+        <label for="themeBgOpacity">배경 위 화면 밝기 (이미지가 너무 진하면 올려보세요)</label>
+        <input type="range" id="themeBgOpacity" min="40" max="100" step="5">
+      </div>
+      <button class="btn btn-danger btn-sm" id="themeResetBtn">기본 테마로 초기화</button>
+      <div class="save-hint" style="margin-top:8px;">테마는 이 브라우저에 자동 저장되고, 강의·플래너 등 기존 데이터에는 영향을 주지 않아요.</div>
+    </div>
+  </div>
+
+  <!-- ================= BACKUP ================= -->
+  <div class="view" id="view-backup">
+    <div class="panel panel-pad">
+      <div class="section-title">데이터 백업 · 복원</div>
+      <p style="font-size:12.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:14px;">
+        과목·강의·시청기록·할일·공부시간 기록을 파일 하나로 내려받을 수 있어요. 큰 변경 전에는 백업을 먼저 받아두는 걸 추천해요.
+      </p>
+      <div class="btn-row" style="margin-bottom:18px;">
+        <button class="btn btn-primary" id="backupDownloadBtn">⬇️ 백업 다운로드</button>
+      </div>
+      <div class="field"><label for="backupFileInput">백업 파일로 복원</label>
+        <input type="file" id="backupFileInput" accept="application/json">
+      </div>
+      <div id="backupResult" style="margin-top:8px;font-size:12.5px;font-weight:600;"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop"><div class="modal" id="modalBody"></div></div>
+<div class="toast" id="toast"></div>
+
+<div class="ai-chat-panel" id="aiChatPanel">
+  <div class="ai-chat-panel-head">
+    <span>👀 AI</span>
+    <button class="ai-chat-close" id="aiChatCloseBtn">✕</button>
+  </div>
+  <div class="quick-prompt-row ai-chat-panel-quick">
+    <button class="quick-prompt-btn" data-quick="checkin">상황체크</button>
+    <button class="quick-prompt-btn" data-quick="week">이번주계획</button>
+    <button class="quick-prompt-btn" data-quick="weak">약한과목</button>
+  </div>
+  <div class="chat-window ai-chat-panel-window" id="fabChatWindow"></div>
+  <div class="chat-input-row ai-chat-panel-input">
+    <textarea id="fabChatInput" placeholder="무엇이든 물어보세요"></textarea>
+    <button class="btn btn-primary btn-sm" id="fabChatSendBtn">전송</button>
+  </div>
+</div>
+<button class="ai-fab" id="aiFabBtn" title="AI 학습코치">👀</button>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- AI proxy (채용트래커와 동일한 Vercel 프록시 재사용) ---------------- */
+  var AI_WORKER_URL = 'https://lab-career-tracke.vercel.app/api/chat';
+
+  /* ---------------- Firebase (구글 로그인 + 기기 간 동기화) ----------------
+     아래 firebaseConfig 값을 Firebase 콘솔(https://console.firebase.google.com)에서
+     발급받은 본인 프로젝트 설정으로 바꿔주세요. apiKey가 'YOUR_'로 시작하는 동안에는
+     로그인 버튼을 눌러도 "설정이 필요해요" 안내만 뜨고 실제 로그인은 되지 않아요. */
+  var firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  var firebaseReady = false;
+  var db = null;
+  var currentUser = null;
+  var cloudSyncTimer = null;
+  var cloudLoadInProgress = false;
+
+  if(firebaseConfig.apiKey.indexOf('YOUR_') !== 0){
+    try{
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      firebaseReady = true;
+    }catch(e){ console.error('Firebase 초기화 실패', e); }
+  }
+  async function callAI(system, messages){
+    if(!AI_WORKER_URL){ throw new Error('worker_not_configured'); }
+    var res = await fetch(AI_WORKER_URL, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({system:system, messages:messages})
+    });
+    if(!res.ok) throw new Error('worker_error_'+res.status);
+    var data = await res.json();
+    if(data.error) throw new Error(data.error);
+    return (data.text||'').trim();
+  }
+
+  var SUBJECT_COLORS = ['#3D6B4C','#3E5C8A','#B8842E','#8C5B7C','#B23A2F','#4E8FA6'];
+  var DOW = ['일','월','화','수','목','금','토'];
+
+  var DEFAULT_SUBJECTS = [
+    {id:'s1', name:'1과목 · 컴퓨터 일반', color:SUBJECT_COLORS[0]},
+    {id:'s2', name:'2과목 · 스프레드시트', color:SUBJECT_COLORS[1]},
+    {id:'s3', name:'3과목 · 데이터베이스', color:SUBJECT_COLORS[2]}
+  ];
+
+  /* ---------------- state ---------------- */
+  var subjects = [];
+  var lectures = [];
+  var todos = [];
+  var sessions = [];
+  var examDate = '';
+  var chatMessages = [];
+  var ytApiKey = '';
+  var themeSettings = null;
+  var THEME_DEFAULT = { primary:'#3D6B4C', accent:'#B8842E', bgImage:'', bgOpacity:90 };
+
+  var mockQuestions = [];
+  var mockPdfDoc = null;
+  var mockCurrentPageNum = 1;
+  var mockCurrentPageCanvasScale = 1;
+  var mockCropStart = null;
+  var mockPendingCropDataUrl = null;
+  var mockQuizQueue = [];
+  var mockQuizIndex = -1;
+  var mockQuizRevealed = false;
+  var activeSubjectFilter = 'all';
+  var playingLectureId = null;
+  var today = new Date();
+  var selectedTodoDate = fmtDate(today.getFullYear(), today.getMonth()+1, today.getDate());
+
+  var swRunning = false, swStartTs = 0, swElapsedBefore = 0, swTimer = null;
+  var sessionViewMode = 'list';
+  var sessCalYear = today.getFullYear();
+  var sessCalMonth = today.getMonth()+1;
+
+  var lecApiReady = false;
+  var lecPlayer = null;
+  var lecPendingVideoId = null;
+  window.onYouTubeIframeAPIReady = function(){
+    lecApiReady = true;
+    if(lecPendingVideoId){ initLecPlayer(lecPendingVideoId); }
+  };
+
+  /* ---------------- helpers ---------------- */
+  function uid(p){ return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function pad2(n){ return n<10 ? '0'+n : ''+n; }
+  function fmtDate(y,m,d){ return y+'-'+pad2(m)+'-'+pad2(d); }
+  function todayStr(){ return fmtDate(today.getFullYear(), today.getMonth()+1, today.getDate()); }
+  function escapeHtml(s){
+    if(s===undefined||s===null) return '';
+    return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+  }
+  function renderMarkdownInline(s){
+    var e = escapeHtml(s||'');
+    e = e.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    return e;
+  }
+  function renderMarkdown(s){
+    var lines = String(s||'').replace(/\r\n/g,'\n').split('\n');
+    var out=[], para=[], list=null;
+    function flushPara(){ if(para.length){ out.push('<p>'+renderMarkdownInline(para.join(' '))+'</p>'); para=[]; } }
+    function flushList(){ if(list){ out.push('<'+list.type+'>'+list.items.map(function(it){return '<li>'+renderMarkdownInline(it)+'</li>';}).join('')+'</'+list.type+'>'); list=null; } }
+    lines.forEach(function(line){
+      var hm=line.match(/^(#{1,6})\s+(.*)$/);
+      if(hm){ flushPara();flushList(); out.push('<div style="font-weight:700;color:var(--green-deep);margin:8px 0 4px;">'+renderMarkdownInline(hm[2])+'</div>'); return; }
+      var ulm=line.match(/^\s*[*\-]\s+(.*)$/);
+      if(ulm){ flushPara(); if(!list||list.type!=='ul'){flushList(); list={type:'ul',items:[]};} list.items.push(ulm[1]); return; }
+      var olm=line.match(/^\s*\d+\.\s+(.*)$/);
+      if(olm){ flushPara(); if(!list||list.type!=='ol'){flushList(); list={type:'ol',items:[]};} list.items.push(olm[1]); return; }
+      if(/^\s*$/.test(line)){ flushPara();flushList(); return; }
+      flushList(); para.push(line.trim());
+    });
+    flushPara(); flushList();
+    return out.join('');
+  }
+
+  var STORAGE_PREFIX = 'studyDesk:';
+  function getLocal(key, fb){ try{ var r=localStorage.getItem(STORAGE_PREFIX+key); return r?JSON.parse(r):fb; }catch(e){ return fb; } }
+  function setLocal(key, val){ try{ localStorage.setItem(STORAGE_PREFIX+key, JSON.stringify(val)); return true; }catch(e){ showToast('저장 중 오류가 발생했어요'); return false; } }
+  function saveSubjects(){ setLocal('subjects', subjects); scheduleCloudSync(); }
+  function saveLectures(){ setLocal('lectures', lectures); scheduleCloudSync(); }
+  function saveTodos(){ setLocal('todos', todos); scheduleCloudSync(); }
+  function saveSessions(){ setLocal('sessions', sessions); scheduleCloudSync(); }
+  function saveExamDate(){ setLocal('examDate', examDate); scheduleCloudSync(); }
+  function saveChat(){ setLocal('chatMessages', chatMessages); scheduleCloudSync(); }
+  function saveYtApiKey(){ setLocal('ytApiKey', ytApiKey); scheduleCloudSync(); }
+  function saveThemeSettings(){ setLocal('themeSettings', themeSettings); scheduleCloudSync(); }
+  function saveMockQuestions(){ setLocal('mockQuestions', mockQuestions); }
+
+  /* ---- 클라우드 동기화 (로그인 상태일 때만 동작) ----
+     mockQuestions(이미지 포함)는 문서 크기 제한 때문에 따로 문제 단위로 저장/삭제하고,
+     나머지 상태는 한 문서로 묶어서 저장해요. */
+  function scheduleCloudSync(){
+    if(!currentUser || !db || cloudLoadInProgress) return;
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(function(){
+      db.collection('users').doc(currentUser.uid).set({
+        subjects: subjects, lectures: lectures, todos: todos, sessions: sessions,
+        examDate: examDate, chatMessages: chatMessages, ytApiKey: ytApiKey, themeSettings: themeSettings,
+        updatedAt: new Date().toISOString()
+      }, {merge:true}).catch(function(e){ console.error('클라우드 저장 실패', e); showToast('클라우드 동기화에 실패했어요'); });
+    }, 900);
+  }
+  function syncMockQuestionToCloud(q){
+    if(!currentUser || !db) return;
+    db.collection('users').doc(currentUser.uid).collection('mockQuestions').doc(q.id).set(q)
+      .catch(function(e){ console.error('문제 동기화 실패', e); });
+  }
+  function deleteMockQuestionFromCloud(qId){
+    if(!currentUser || !db) return;
+    db.collection('users').doc(currentUser.uid).collection('mockQuestions').doc(qId).delete()
+      .catch(function(e){ console.error('문제 삭제 동기화 실패', e); });
+  }
+
+  async function loadCloudData(){
+    if(!db || !currentUser) return;
+    cloudLoadInProgress = true;
+    try{
+      var mainDoc = await db.collection('users').doc(currentUser.uid).get();
+      if(mainDoc.exists){
+        var d = mainDoc.data();
+        subjects = Array.isArray(d.subjects) ? d.subjects : subjects;
+        lectures = Array.isArray(d.lectures) ? d.lectures : lectures;
+        todos = Array.isArray(d.todos) ? d.todos : todos;
+        sessions = Array.isArray(d.sessions) ? d.sessions : sessions;
+        examDate = d.examDate || examDate;
+        chatMessages = Array.isArray(d.chatMessages) ? d.chatMessages : chatMessages;
+        ytApiKey = d.ytApiKey || ytApiKey;
+        themeSettings = d.themeSettings || themeSettings;
+        setLocal('subjects', subjects); setLocal('lectures', lectures); setLocal('todos', todos);
+        setLocal('sessions', sessions); setLocal('examDate', examDate); setLocal('chatMessages', chatMessages);
+        setLocal('ytApiKey', ytApiKey); setLocal('themeSettings', themeSettings);
+      } else {
+        // 클라우드에 처음 로그인하는 경우 → 지금 이 브라우저에 있던 데이터를 클라우드에 올려줌
+        scheduleCloudSync();
+      }
+      var qSnap = await db.collection('users').doc(currentUser.uid).collection('mockQuestions').get();
+      if(!qSnap.empty){
+        mockQuestions = qSnap.docs.map(function(doc){ return doc.data(); });
+        setLocal('mockQuestions', mockQuestions);
+      } else if(mockQuestions.length){
+        // 클라우드에 문제가 없는데 로컬엔 있는 경우 → 로컬 문제들을 클라우드에 올려줌
+        mockQuestions.forEach(function(q){ syncMockQuestionToCloud(q); });
+      }
+      applyTheme();
+      renderAll();
+      showToast('클라우드 데이터를 불러왔어요');
+    }catch(e){
+      console.error('클라우드 불러오기 실패', e);
+      showToast('클라우드 데이터를 불러오는 데 실패했어요');
+    } finally {
+      cloudLoadInProgress = false;
+    }
+  }
+
+  function updateAuthUI(){
+    var box = document.getElementById('authBox');
+    if(!firebaseReady){
+      box.innerHTML = '<span class="auth-sync-note" title="코드 상단 firebaseConfig를 설정해야 로그인할 수 있어요">로그인 설정 필요</span>';
+      return;
+    }
+    if(currentUser){
+      box.innerHTML = '<div class="auth-signed-in">'
+        + (currentUser.photoURL ? '<img class="auth-avatar" src="'+currentUser.photoURL+'">' : '<div class="auth-avatar"></div>')
+        + '<span class="auth-name">'+escapeHtml(currentUser.displayName||currentUser.email||'로그인됨')+'</span>'
+        + '<button class="auth-signout-btn" id="authSignOutBtn">로그아웃</button>'
+        + '</div>';
+      document.getElementById('authSignOutBtn').addEventListener('click', function(){
+        firebase.auth().signOut();
+      });
+    } else {
+      box.innerHTML = '<button class="btn btn-sm" id="authSignInBtn">Google로 로그인</button>';
+      document.getElementById('authSignInBtn').addEventListener('click', signInWithGoogle);
+    }
+  }
+  function signInWithGoogle(){
+    if(!firebaseReady){ showToast('코드 상단 firebaseConfig를 먼저 설정해주세요'); return; }
+    var provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).catch(function(e){
+      console.error(e);
+      showToast('로그인에 실패했어요');
+    });
+  }
+  if(firebaseReady){
+    firebase.auth().onAuthStateChanged(function(user){
+      currentUser = user;
+      updateAuthUI();
+      if(user){ loadCloudData(); }
+    });
+  } else {
+    document.addEventListener('DOMContentLoaded', updateAuthUI);
+  }
+
+  function hexToRgb(hex){
+    hex = (hex||'').replace('#','');
+    if(hex.length===3){ hex = hex.split('').map(function(c){return c+c;}).join(''); }
+    var num = parseInt(hex,16);
+    if(isNaN(num)) return {r:61,g:107,b:76};
+    return { r:(num>>16)&255, g:(num>>8)&255, b:num&255 };
+  }
+  function rgbToHex(r,g,b){
+    function h(n){ n=Math.max(0,Math.min(255,Math.round(n))); var s=n.toString(16); return s.length<2?'0'+s:s; }
+    return '#'+h(r)+h(g)+h(b);
+  }
+  function darkenColor(hex, amount){
+    var c = hexToRgb(hex);
+    return rgbToHex(c.r*(1-amount), c.g*(1-amount), c.b*(1-amount));
+  }
+  function lightenColor(hex, amount){
+    var c = hexToRgb(hex);
+    return rgbToHex(c.r+(255-c.r)*amount, c.g+(255-c.g)*amount, c.b+(255-c.b)*amount);
+  }
+
+  function applyTheme(){
+    var t = themeSettings || THEME_DEFAULT;
+    var root = document.documentElement.style;
+    root.setProperty('--green', t.primary);
+    root.setProperty('--green-deep', darkenColor(t.primary, 0.24));
+    root.setProperty('--green-soft', lightenColor(t.primary, 0.86));
+    root.setProperty('--gold', t.accent);
+    root.setProperty('--gold-soft', lightenColor(t.accent, 0.84));
+    if(t.bgImage){
+      var dim = (100-(t.bgOpacity!==undefined?t.bgOpacity:90))/100;
+      document.body.style.backgroundImage = 'linear-gradient(rgba(255,255,255,'+dim+'), rgba(255,255,255,'+dim+')), url("'+t.bgImage+'")';
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundAttachment = 'fixed';
+    } else {
+      document.body.style.backgroundImage = 'none';
+    }
+  }
+  function renderThemeView(){
+    var t = themeSettings || THEME_DEFAULT;
+    var pp = document.getElementById('themePrimaryPicker'), pt = document.getElementById('themePrimaryText');
+    var ap = document.getElementById('themeAccentPicker'), at = document.getElementById('themeAccentText');
+    var opac = document.getElementById('themeBgOpacity');
+    var preview = document.getElementById('themeBgPreview');
+    if(pp){ pp.value = t.primary; pt.value = t.primary; }
+    if(ap){ ap.value = t.accent; at.value = t.accent; }
+    if(opac){ opac.value = t.bgOpacity!==undefined ? t.bgOpacity : 90; }
+    if(preview){
+      if(t.bgImage){ preview.style.backgroundImage = 'url("'+t.bgImage+'")'; preview.textContent=''; }
+      else { preview.style.backgroundImage='none'; preview.textContent='설정된 배경 이미지가 없어요'; }
+    }
+  }
+  function updateThemeField(field, value){
+    themeSettings = Object.assign({}, themeSettings || THEME_DEFAULT);
+    themeSettings[field] = value;
+    applyTheme();
+    saveThemeSettings();
+  }
+
+  var toastTimer=null;
+  function showToast(msg){
+    var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove('show');},2200);
+  }
+  function openModal(html, wide){
+    document.getElementById('modalBody').innerHTML = html;
+    document.getElementById('modalBody').className = wide ? 'modal modal-wide' : 'modal';
+    document.getElementById('modalBackdrop').classList.add('open');
+  }
+  function closeModal(){
+    document.getElementById('modalBackdrop').classList.remove('open');
+    document.getElementById('modalBody').innerHTML='';
+  }
+  document.getElementById('modalBackdrop').addEventListener('click', function(e){ if(e.target.id==='modalBackdrop') closeModal(); });
+
+  function subjectById(id){ for(var i=0;i<subjects.length;i++) if(subjects[i].id===id) return subjects[i]; return null; }
+
+  /* ================= TABS ================= */
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+      document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+      if(btn.dataset.tab==='dashboard'){ renderDashboard(); renderSessionLog(); }
+      if(btn.dataset.tab==='lectures'){ renderLectureRoom(); }
+      if(btn.dataset.tab==='mock'){ renderMockSubjectSelects(); renderMockQManageList(); renderMockSolveSetup(); }
+      if(btn.dataset.tab==='planner'){ renderTodos(); }
+      if(btn.dataset.tab==='theme'){ renderThemeView(); }
+    });
+  });
+
+  /* ================= YOUTUBE ID / PLAYLIST ID PARSE ================= */
+  function parseYoutubeId(url){
+    if(!url) return null;
+    url = url.trim();
+    var m = url.match(/youtu\.be\/([A-Za-z0-9_\-]{6,})/); if(m) return m[1];
+    m = url.match(/[?&]v=([A-Za-z0-9_\-]{6,})/); if(m) return m[1];
+    m = url.match(/embed\/([A-Za-z0-9_\-]{6,})/); if(m) return m[1];
+    if(/^[A-Za-z0-9_\-]{10,}$/.test(url)) return url;
+    return null;
+  }
+  function parsePlaylistId(url){
+    if(!url) return null;
+    url = url.trim();
+    var m = url.match(/[?&]list=([A-Za-z0-9_\-]+)/);
+    if(m) return m[1];
+    if(/^[A-Za-z0-9_\-]{10,}$/.test(url)) return url;
+    return null;
+  }
+
+  /* ================= DASHBOARD ================= */
+  function renderDashboard(){
+    var totalLec = lectures.length;
+    var doneLec = lectures.filter(function(l){return l.done;}).length;
+    var pct = totalLec ? Math.round(doneLec/totalLec*100) : 0;
+
+    var ringFg = document.getElementById('ringFg');
+    var circumference = 2*Math.PI*62;
+    ringFg.setAttribute('stroke-dasharray', circumference);
+    ringFg.setAttribute('stroke-dashoffset', circumference - (pct/100)*circumference);
+    document.getElementById('ringNum').textContent = pct+'%';
+    document.getElementById('ringSubCaption').textContent = doneLec+' / '+totalLec+' 강의 시청완료';
+
+    var todaySessions = sessions.filter(function(s){return s.date===todayStr();});
+    var todaySec = todaySessions.reduce(function(a,s){return a+s.durationSec;},0);
+    document.getElementById('statTodayTime').textContent = Math.round(todaySec/60)+'분';
+
+    var todayTodos = todos.filter(function(t){return t.date===todayStr();});
+    var todayDone = todayTodos.filter(function(t){return t.done;}).length;
+    document.getElementById('statTodoDone').textContent = todayDone+'/'+todayTodos.length;
+
+    var spEl = document.getElementById('subjectProgressList');
+    if(!subjects.length){
+      spEl.innerHTML = '<div class="empty-state" style="padding:16px 0;">강의실 탭에서 과목을 먼저 등록해보세요.</div>';
+    } else {
+      spEl.innerHTML = subjects.map(function(s){
+        var subLec = lectures.filter(function(l){return l.subjectId===s.id;});
+        var subDone = subLec.filter(function(l){return l.done;}).length;
+        var subPct = subLec.length ? Math.round(subDone/subLec.length*100) : 0;
+        return '<div class="subject-progress-row">'
+          + '<span class="subject-dot" style="background:'+s.color+';"></span>'
+          + '<span class="subject-progress-name">'+escapeHtml(s.name)+'</span>'
+          + '<span class="subject-progress-bar"><span class="subject-progress-fill" style="width:'+subPct+'%;background:'+s.color+';"></span></span>'
+          + '<span class="subject-progress-pct">'+subDone+'/'+subLec.length+'</span>'
+          + '</div>';
+      }).join('');
+    }
+
+    var dashListEl = document.getElementById('dashTodoList');
+    if(!todayTodos.length){
+      dashListEl.innerHTML = '<div class="empty-state" style="padding:14px 0;">오늘 등록된 할 일이 없어요. 플래너 탭에서 추가해보세요.</div>';
+    } else {
+      dashListEl.innerHTML = todayTodos.map(function(t){
+        return '<div class="todo-mini'+(t.done?' done':'')+'">'+(t.done?'✓ ':'· ')+escapeHtml(t.text)+'</div>';
+      }).join('');
+    }
+
+    renderDdayTicket();
+  }
+
+  function daysUntil(dateStr){
+    if(!dateStr) return null;
+    var target = new Date(dateStr+'T00:00:00');
+    var now = new Date(); now.setHours(0,0,0,0);
+    return Math.round((target-now)/86400000);
+  }
+  function renderDdayTicket(){
+    var numEl = document.getElementById('ddayNum');
+    if(!examDate){ numEl.textContent='미설정'; numEl.classList.add('far'); return; }
+    var d = daysUntil(examDate);
+    numEl.classList.toggle('far', d===null || d>14);
+    if(d===null){ numEl.textContent='미설정'; }
+    else if(d>0){ numEl.textContent='D-'+d; }
+    else if(d===0){ numEl.textContent='D-Day'; }
+    else{ numEl.textContent='종료'; }
+  }
+  document.getElementById('ddayEditBtn').addEventListener('click', function(){
+    openModal(
+      '<h3>시험일 설정</h3>'
+      + '<div class="field"><label>시험 날짜</label><input type="date" id="ddayModalInput" value="'+(examDate||'')+'"></div>'
+      + '<div class="modal-close-row"><button class="btn" id="modalCancel">취소</button><button class="btn btn-primary" id="modalSave">저장</button></div>'
+    );
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    document.getElementById('modalSave').addEventListener('click', function(){
+      examDate = document.getElementById('ddayModalInput').value;
+      saveExamDate();
+      document.getElementById('examDateInput').value = examDate;
+      renderDdayTicket();
+      closeModal();
+      showToast('시험일을 저장했어요');
+    });
+  });
+
+  /* ================= LECTURES / SUBJECTS ================= */
+  function renderSubjectChips(){
+    var row = document.getElementById('subjectChipRow');
+    var html = '<button class="subject-chip'+(activeSubjectFilter==='all'?' active':'')+'" data-filter="all">전체 ('+lectures.length+')</button>';
+    html += subjects.map(function(s){
+      var count = lectures.filter(function(l){return l.subjectId===s.id;}).length;
+      return '<button class="subject-chip'+(activeSubjectFilter===s.id?' active':'')+'" data-filter="'+s.id+'">'
+        + '<span class="cdot" style="background:'+s.color+';"></span>'+escapeHtml(s.name)+' ('+count+')</button>';
+    }).join('');
+    row.innerHTML = html;
+    row.querySelectorAll('[data-filter]').forEach(function(btn){
+      btn.addEventListener('click', function(){ activeSubjectFilter = btn.dataset.filter; renderLectureRoom(); });
+    });
+
+    var swSel = document.getElementById('swSubjectSelect');
+    var prevVal = swSel.value;
+    swSel.innerHTML = subjects.map(function(s){ return '<option value="'+s.id+'">'+escapeHtml(s.name)+'</option>'; }).join('');
+    if(subjects.some(function(s){return s.id===prevVal;})) swSel.value = prevVal;
+  }
+
+  function renderLectureList(){
+    var listEl = document.getElementById('lecList');
+    var list = lectures.filter(function(l){ return activeSubjectFilter==='all' || l.subjectId===activeSubjectFilter; });
+    list.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    if(!list.length){
+      listEl.innerHTML = '<div class="empty-state">등록된 강의가 없어요. "재생목록 자동 가져오기"로 한번에 등록해보세요.</div>';
+      return;
+    }
+    listEl.innerHTML = list.map(function(l){
+      var s = subjectById(l.subjectId);
+      return '<div class="lec-item'+(playingLectureId===l.id?' playing':'')+'" data-lec-id="'+l.id+'">'
+        + '<input type="checkbox" class="lec-check" data-toggle-lec="'+l.id+'"'+(l.done?' checked':'')+'>'
+        + '<div class="lec-title'+(l.done?' done-text':'')+'">'+escapeHtml(l.title)+(s?(' <span style="color:var(--ink-faint);font-size:11px;">· '+escapeHtml(s.name.split(' · ')[0])+'</span>'):'')+'</div>'
+        + '<button class="lec-del" data-del-lec="'+l.id+'">✕</button>'
+        + '</div>';
+    }).join('');
+
+    listEl.querySelectorAll('.lec-item').forEach(function(item){
+      item.addEventListener('click', function(e){
+        if(e.target.closest('[data-toggle-lec]') || e.target.closest('[data-del-lec]')) return;
+        playLecture(item.dataset.lecId);
+      });
+    });
+    listEl.querySelectorAll('[data-toggle-lec]').forEach(function(chk){
+      chk.addEventListener('change', function(e){
+        e.stopPropagation();
+        var l = lectures.find(function(x){return x.id===chk.dataset.toggleLec;});
+        if(l){
+          l.done = chk.checked;
+          l.watchedAt = chk.checked ? new Date().toISOString() : null;
+          saveLectures();
+          syncLectureTodo(l);
+          renderLectureRoom();
+          if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
+          if(playingLectureId===l.id) updatePlayerActionButtons(l);
+        }
+      });
+    });
+    listEl.querySelectorAll('[data-del-lec]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(!confirm('이 강의를 목록에서 삭제할까요? 연동된 할일도 함께 삭제돼요.')) return;
+        var delId = btn.dataset.delLec;
+        lectures = lectures.filter(function(x){return x.id!==delId;});
+        todos = todos.filter(function(t){return t.lectureId!==delId;});
+        saveTodos();
+        if(playingLectureId===delId) playingLectureId=null;
+        saveLectures();
+        renderLectureRoom();
+        if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
+      });
+    });
+  }
+
+  function buildLectureTodoText(l){
+    var s = subjectById(l.subjectId);
+    return (s?(s.name.split(' · ')[0]+' · '):'')+l.title;
+  }
+  /* 강의 완료 상태가 바뀔 때마다 연결된 투두를 만들거나 상태를 맞춰줌 (양방향 연동) */
+  function syncLectureTodo(l){
+    var t = todos.find(function(x){return x.lectureId===l.id;});
+    if(t){
+      t.done = l.done;
+    } else {
+      todos.push({id:uid('t'), date:todayStr(), text:buildLectureTodoText(l), done:l.done, createdAt:new Date().toISOString(), lectureId:l.id});
+    }
+    saveTodos();
+  }
+  /* 강의를 재생하면(처음 열면) 아직 등록된 적 없는 경우 자동으로 오늘 할일에 등록 */
+  function ensureLectureTodo(l){
+    var t = todos.find(function(x){return x.lectureId===l.id;});
+    if(!t){
+      todos.push({id:uid('t'), date:todayStr(), text:buildLectureTodoText(l), done:l.done, createdAt:new Date().toISOString(), lectureId:l.id});
+      saveTodos();
+      if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
+      renderDashboard();
+    }
+  }
+  function autoCompleteLecture(id){
+    var l = lectures.find(function(x){return x.id===id;});
+    if(!l || l.done) return;
+    l.done = true;
+    l.watchedAt = new Date().toISOString();
+    saveLectures();
+    syncLectureTodo(l);
+    renderLectureRoom();
+    if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
+    updatePlayerActionButtons(l);
+    showToast('영상을 끝까지 봐서 자동으로 시청완료 처리했어요');
+  }
+  function updatePlayerActionButtons(l){
+    var s = subjectById(l.subjectId);
+    document.getElementById('playerMeta').textContent = (s?s.name:'')+(l.done?' · 시청완료':'');
+    document.getElementById('playerMarkDoneBtn').textContent = l.done ? '↺ 시청완료 취소' : '✓ 시청완료로 표시';
+  }
+  function ensureLecturePlayerContainer(){
+    if(!document.getElementById('lecPlayerDiv')){
+      document.getElementById('playerWrap').innerHTML = '<div id="lecPlayerDiv"></div>';
+    }
+  }
+  function initLecPlayer(videoId){
+    ensureLecturePlayerContainer();
+    lecPlayer = new YT.Player('lecPlayerDiv', {
+      width:'100%', height:'100%',
+      videoId: videoId,
+      playerVars:{autoplay:1, playsinline:1, rel:0},
+      events:{
+        onStateChange:function(e){
+          if(e.data === YT.PlayerState.ENDED){ autoCompleteLecture(playingLectureId); }
+        }
+      }
+    });
+    lecPendingVideoId = null;
+  }
+  function loadLectureVideo(videoId){
+    if(lecApiReady){
+      if(lecPlayer && lecPlayer.loadVideoById){
+        ensureLecturePlayerContainer();
+        lecPlayer.loadVideoById(videoId);
+      } else {
+        initLecPlayer(videoId);
+      }
+    } else {
+      lecPendingVideoId = videoId;
+      ensureLecturePlayerContainer();
+    }
+  }
+
+  function playLecture(id){
+    var l = lectures.find(function(x){return x.id===id;});
+    if(!l) return;
+    playingLectureId = id;
+    loadLectureVideo(l.videoId);
+    document.getElementById('playerTitle').textContent = l.title;
+    updatePlayerActionButtons(l);
+    document.getElementById('playerActions').style.display = 'flex';
+    document.getElementById('playerMarkDoneBtn').onclick = function(){
+      l.done = !l.done;
+      l.watchedAt = l.done ? new Date().toISOString() : null;
+      saveLectures();
+      syncLectureTodo(l);
+      renderLectureRoom();
+      if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
+      updatePlayerActionButtons(l);
+    };
+    ensureLectureTodo(l);
+    renderLectureList();
+  }
+
+  function renderLectureRoom(){
+    renderSubjectChips();
+    renderLectureList();
+    renderDashboard();
+  }
+
+  document.getElementById('subjectManageBtn').addEventListener('click', openSubjectManageModal);
+  function openSubjectManageModal(){
+    openModal(renderSubjectManageBody(), true);
+    bindSubjectManageEvents();
+  }
+  function renderSubjectManageBody(){
+    return '<h3>과목 관리</h3>'
+      + '<div id="subjectManageList">' + subjects.map(function(s){
+          var count = lectures.filter(function(l){return l.subjectId===s.id;}).length;
+          return '<div class="field-row" style="align-items:center;margin-bottom:10px;">'
+            + '<input type="color" value="'+s.color+'" data-color-subj="'+s.id+'" style="flex:0 0 40px;height:36px;padding:2px;border:1px solid var(--line);border-radius:8px;">'
+            + '<input type="text" value="'+escapeHtml(s.name)+'" data-name-subj="'+s.id+'" style="flex:1;">'
+            + '<span style="font-size:11px;color:var(--ink-faint);flex:0 0 auto;">강의 '+count+'개</span>'
+            + '<button class="btn btn-danger btn-sm" data-del-subj="'+s.id+'" style="flex:0 0 auto;">삭제</button>'
+            + '</div>';
+        }).join('') + '</div>'
+      + '<div class="field-row"><input type="text" id="newSubjName" placeholder="새 과목 이름"><button class="btn" id="newSubjBtn" style="flex:0 0 auto;">추가</button></div>'
+      + '<div class="modal-close-row"><button class="btn btn-primary" id="modalCloseBtn">완료</button></div>';
+  }
+  function bindSubjectManageEvents(){
+    var wrap = document.getElementById('modalBody');
+    wrap.querySelectorAll('[data-name-subj]').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var s = subjectById(inp.dataset.nameSubj);
+        if(s){ s.name = inp.value.trim() || s.name; saveSubjects(); renderLectureRoom(); }
+      });
+    });
+    wrap.querySelectorAll('[data-color-subj]').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        var s = subjectById(inp.dataset.colorSubj);
+        if(s){ s.color = inp.value; saveSubjects(); renderLectureRoom(); }
+      });
+    });
+    wrap.querySelectorAll('[data-del-subj]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!confirm('이 과목을 삭제할까요? 소속된 강의는 "미분류"로 남아요.')) return;
+        subjects = subjects.filter(function(s){return s.id!==btn.dataset.delSubj;});
+        saveSubjects();
+        document.getElementById('modalBody').innerHTML = renderSubjectManageBody();
+        bindSubjectManageEvents();
+        renderLectureRoom();
+      });
+    });
+    var addBtn = document.getElementById('newSubjBtn');
+    if(addBtn){
+      addBtn.addEventListener('click', function(){
+        var input = document.getElementById('newSubjName');
+        var name = input.value.trim();
+        if(!name) return;
+        subjects.push({id:uid('s'), name:name, color:SUBJECT_COLORS[subjects.length % SUBJECT_COLORS.length]});
+        saveSubjects();
+        document.getElementById('modalBody').innerHTML = renderSubjectManageBody();
+        bindSubjectManageEvents();
+        renderLectureRoom();
+        input.value='';
+      });
+    }
+    var closeBtn = document.getElementById('modalCloseBtn');
+    if(closeBtn) closeBtn.addEventListener('click', closeModal);
+  }
+
+  document.getElementById('lecAddBtn').addEventListener('click', function(){
+    openModal(
+      '<h3>강의 추가</h3>'
+      + '<div class="field"><label>과목</label><select id="lfSubject">'+subjects.map(function(s){return '<option value="'+s.id+'">'+escapeHtml(s.name)+'</option>';}).join('')+'</select></div>'
+      + '<div class="field"><label>강의 제목</label><input type="text" id="lfTitle" placeholder="예: 1강. 컴퓨터 시스템 개요"></div>'
+      + '<div class="field"><label>유튜브 링크</label><input type="url" id="lfUrl" placeholder="https://youtu.be/..."></div>'
+      + '<div class="modal-close-row"><button class="btn" id="modalCancel">취소</button><button class="btn btn-primary" id="modalSave">추가</button></div>'
+    );
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    document.getElementById('modalSave').addEventListener('click', function(){
+      var vid = parseYoutubeId(document.getElementById('lfUrl').value);
+      var title = document.getElementById('lfTitle').value.trim();
+      if(!vid){ showToast('유튜브 링크를 확인해주세요'); return; }
+      if(!title){ showToast('강의 제목을 입력해주세요'); return; }
+      lectures.push({id:uid('lec'), subjectId:document.getElementById('lfSubject').value, title:title, videoId:vid, order:lectures.length, done:false, watchedAt:null});
+      saveLectures();
+      closeModal();
+      renderLectureRoom();
+      showToast('강의를 추가했어요');
+    });
+  });
+
+  document.getElementById('lecBulkAddBtn').addEventListener('click', function(){
+    openModal(
+      '<h3>여러 강의 한번에 추가</h3>'
+      + '<div class="save-hint" style="margin-bottom:10px;">한 줄에 강의 하나씩, <b>제목 | 유튜브링크</b> 형식으로 붙여넣으면 아래 선택한 과목으로 한번에 등록돼요.</div>'
+      + '<div class="field"><label>과목</label><select id="bulkSubject">'+subjects.map(function(s){return '<option value="'+s.id+'">'+escapeHtml(s.name)+'</option>';}).join('')+'</select></div>'
+      + '<div class="field"><label>강의 목록</label><textarea id="bulkArea" style="min-height:180px;font-family:var(--font-mono);font-size:12.5px;" placeholder="1강. 컴퓨터 시스템 개요 | https://youtu.be/xxxxx&#10;2강. 자료의 표현 | https://youtu.be/yyyyy"></textarea></div>'
+      + '<div class="modal-close-row"><button class="btn" id="modalCancel">취소</button><button class="btn btn-primary" id="modalSave">일괄 추가</button></div>'
+    );
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    document.getElementById('modalSave').addEventListener('click', function(){
+      var subjId = document.getElementById('bulkSubject').value;
+      var lines = document.getElementById('bulkArea').value.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+      var added = 0;
+      lines.forEach(function(line){
+        var parts = line.split('|');
+        if(parts.length < 2) return;
+        var title = parts[0].trim();
+        var vid = parseYoutubeId(parts.slice(1).join('|').trim());
+        if(!title || !vid) return;
+        lectures.push({id:uid('lec'), subjectId:subjId, title:title, videoId:vid, order:lectures.length, done:false, watchedAt:null});
+        added++;
+      });
+      saveLectures();
+      closeModal();
+      renderLectureRoom();
+      showToast(added+'개 강의를 추가했어요');
+    });
+  });
+
+  /* ================= PLAYLIST AUTO-IMPORT (YouTube Data API v3) ================= */
+  document.getElementById('lecImportBtn').addEventListener('click', openImportModal);
+
+  function openImportModal(){
+    openModal(
+      '<h3>재생목록 자동 가져오기</h3>'
+      + '<div class="save-hint" style="margin-bottom:12px;line-height:1.7;">'
+      + '유튜브 <b>Data API 키</b>가 한 번 필요해요 (무료). '
+      + '<a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener" style="color:var(--green-deep);font-weight:700;">Google Cloud Console</a>에서 '
+      + '프로젝트 만들고 "YouTube Data API v3"를 사용 설정한 뒤, 사용자 인증정보 &gt; API 키를 발급받아 아래에 붙여넣으면 돼요. '
+      + '키는 이 브라우저에만 저장되고 한번 등록해두면 다음부터는 재생목록 링크만 붙여넣으면 돼요.</div>'
+      + '<div class="field"><label>YouTube Data API 키</label><input type="password" id="impApiKey" value="'+escapeHtml(ytApiKey)+'" placeholder="AIza..."></div>'
+      + '<div class="field"><label>재생목록 링크</label><input type="url" id="impPlaylistUrl" placeholder="https://youtube.com/playlist?list=..."></div>'
+      + '<button class="btn btn-primary" id="impFetchBtn" style="width:100%;">불러오기</button>'
+      + '<div class="import-status" id="impStatus"></div>'
+      + '<div id="impResultArea"></div>'
+      + '<div class="modal-close-row"><button class="btn" id="modalCloseBtn">닫기</button></div>'
+    , true);
+    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+    document.getElementById('impFetchBtn').addEventListener('click', runPlaylistImport);
+  }
+
+  async function fetchAllPlaylistItems(apiKey, playlistId){
+    var items = [];
+    var pageToken = '';
+    do{
+      var url = 'https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId='
+        + encodeURIComponent(playlistId) + '&key=' + encodeURIComponent(apiKey)
+        + (pageToken ? ('&pageToken='+encodeURIComponent(pageToken)) : '');
+      var res = await fetch(url);
+      var data = await res.json();
+      if(!res.ok){ throw new Error(data.error && data.error.message ? data.error.message : ('API 오류 ('+res.status+')')); }
+      (data.items||[]).forEach(function(it){
+        var sn = it.snippet || {};
+        var vid = sn.resourceId && sn.resourceId.videoId;
+        if(!vid) return;
+        if(sn.title === 'Private video' || sn.title === 'Deleted video') return;
+        items.push({ videoId: vid, title: sn.title || vid, position: sn.position || items.length });
+      });
+      pageToken = data.nextPageToken || '';
+    } while(pageToken);
+    return items;
+  }
+
+  var importedItems = [];
+
+  async function runPlaylistImport(){
+    var apiKey = document.getElementById('impApiKey').value.trim();
+    var plUrl = document.getElementById('impPlaylistUrl').value.trim();
+    var statusEl = document.getElementById('impStatus');
+    var btn = document.getElementById('impFetchBtn');
+    var playlistId = parsePlaylistId(plUrl);
+
+    if(!apiKey){ statusEl.style.color='var(--red)'; statusEl.textContent='API 키를 입력해주세요.'; return; }
+    if(!playlistId){ statusEl.style.color='var(--red)'; statusEl.textContent='재생목록 링크를 확인해주세요.'; return; }
+
+    ytApiKey = apiKey; saveYtApiKey();
+
+    btn.disabled = true; btn.textContent = '불러오는 중...';
+    statusEl.style.color = 'var(--ink-soft)';
+    statusEl.textContent = '재생목록을 불러오는 중이에요...';
+
+    try{
+      var items = await fetchAllPlaylistItems(apiKey, playlistId);
+      if(!items.length){ throw new Error('영상을 찾지 못했어요. 재생목록이 비공개는 아닌지 확인해주세요.'); }
+      var existingIds = {};
+      lectures.forEach(function(l){ existingIds[l.videoId] = true; });
+      importedItems = items.map(function(it){ return { videoId: it.videoId, title: it.title, alreadyAdded: !!existingIds[it.videoId], subjectId: subjects[0] ? subjects[0].id : '' }; });
+
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = items.length + '개 강의를 찾았어요. 과목을 지정하고 추가할 항목을 선택해주세요.';
+      renderImportResultArea();
+    }catch(err){
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = '불러오기에 실패했어요: ' + (err && err.message ? err.message : '알 수 없는 오류');
+    } finally {
+      btn.disabled = false; btn.textContent = '불러오기';
+    }
+  }
+
+  function renderImportResultArea(){
+    var area = document.getElementById('impResultArea');
+    if(!importedItems.length){ area.innerHTML=''; return; }
+    var subjOptions = subjects.map(function(s){ return '<option value="'+s.id+'">'+escapeHtml(s.name)+'</option>'; }).join('');
+    area.innerHTML =
+      '<div class="import-toolbar">'
+      + '<span style="font-size:12px;color:var(--ink-soft);">전체 선택 과목 일괄지정:</span>'
+      + '<select id="impBulkSubject">'+subjOptions+'</select>'
+      + '<button class="btn btn-sm" id="impApplyBulkSubject">적용</button>'
+      + '<button class="btn btn-ghost btn-sm" id="impSelectAllBtn">전체선택</button>'
+      + '<button class="btn btn-ghost btn-sm" id="impSelectNoneBtn">선택해제</button>'
+      + '</div>'
+      + '<div class="import-list-scroll" id="impListScroll">' + importedItems.map(function(it, idx){
+          return '<div class="import-row">'
+            + '<input type="checkbox" class="imp-check" data-imp-idx="'+idx+'"'+(it.alreadyAdded?'':' checked')+'>'
+            + '<span class="imp-title">'+escapeHtml(it.title)+(it.alreadyAdded?' <span style="color:var(--ink-faint);font-size:11px;">(이미 등록됨)</span>':'')+'</span>'
+            + '<select class="imp-subj-select" data-imp-subj-idx="'+idx+'">'+subjects.map(function(s){return '<option value="'+s.id+'"'+(s.id===it.subjectId?' selected':'')+'>'+escapeHtml(s.name)+'</option>';}).join('')+'</select>'
+            + '</div>';
+        }).join('') + '</div>'
+      + '<button class="btn btn-primary" id="impAddSelectedBtn" style="width:100%;">선택한 강의 추가하기</button>';
+
+    area.querySelectorAll('.imp-subj-select').forEach(function(sel){
+      sel.addEventListener('change', function(){ importedItems[parseInt(sel.dataset.impSubjIdx,10)].subjectId = sel.value; });
+    });
+    document.getElementById('impApplyBulkSubject').addEventListener('click', function(){
+      var val = document.getElementById('impBulkSubject').value;
+      importedItems.forEach(function(it){ it.subjectId = val; });
+      renderImportResultArea();
+    });
+    document.getElementById('impSelectAllBtn').addEventListener('click', function(){
+      area.querySelectorAll('.imp-check').forEach(function(c){ c.checked = true; });
+    });
+    document.getElementById('impSelectNoneBtn').addEventListener('click', function(){
+      area.querySelectorAll('.imp-check').forEach(function(c){ c.checked = false; });
+    });
+    document.getElementById('impAddSelectedBtn').addEventListener('click', function(){
+      var added = 0;
+      area.querySelectorAll('.imp-check').forEach(function(chk){
+        if(!chk.checked) return;
+        var it = importedItems[parseInt(chk.dataset.impIdx,10)];
+        lectures.push({id:uid('lec'), subjectId:it.subjectId, title:it.title, videoId:it.videoId, order:lectures.length, done:false, watchedAt:null});
+        added++;
+      });
+      saveLectures();
+      renderLectureRoom();
+      closeModal();
+      showToast(added+'개 강의를 추가했어요');
+    });
+  }
+
+  /* ================= MOCK EXAM ================= */
+  document.querySelectorAll('#mockSubtabs .subtab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#mockSubtabs .subtab-btn').forEach(function(b){b.classList.remove('active');});
+      document.querySelectorAll('.msubview').forEach(function(v){v.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById('msub-'+btn.dataset.msub).classList.add('active');
+      if(btn.dataset.msub==='solve') renderMockSolveSetup();
+    });
+  });
+
+  function renderMockSubjectSelects(){
+    var opts = subjects.map(function(s){ return '<option value="'+s.id+'">'+escapeHtml(s.name)+'</option>'; }).join('');
+    ['mockDefaultSubject','mockFormSubject'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      var prev = el.value;
+      el.innerHTML = opts;
+      if(subjects.some(function(s){return s.id===prev;})) el.value = prev;
+    });
+    var solveSel = document.getElementById('mockSolveSubject');
+    if(solveSel){
+      var prev2 = solveSel.value;
+      solveSel.innerHTML = '<option value="all">전체</option>' + opts;
+      solveSel.value = subjects.some(function(s){return s.id===prev2;}) ? prev2 : 'all';
+    }
+  }
+
+  /* ---- PDF 업로드 & 페이지 렌더 ---- */
+  var mockPdfInputEl = document.getElementById('mockPdfInput');
+  if(mockPdfInputEl){
+    mockPdfInputEl.addEventListener('change', function(e){
+      var file = e.target.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.getDocument({data: ev.target.result}).promise.then(function(pdf){
+          mockPdfDoc = pdf;
+          mockCurrentPageNum = 1;
+          document.getElementById('mockPdfNav').style.display = 'block';
+          renderMockPage();
+          showToast('PDF를 불러왔어요 (' + pdf.numPages + '페이지)');
+        }).catch(function(err){
+          showToast('PDF를 여는 데 실패했어요');
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function renderMockPage(){
+    if(!mockPdfDoc) return;
+    mockPdfDoc.getPage(mockCurrentPageNum).then(function(page){
+      var wrapWidth = document.getElementById('mockCanvasWrap').clientWidth || 760;
+      var baseViewport = page.getViewport({scale:1});
+      var scale = Math.min(2.2, (wrapWidth / baseViewport.width) * 1.4);
+      mockCurrentPageCanvasScale = scale;
+      var viewport = page.getViewport({scale:scale});
+      var canvas = document.getElementById('mockPageCanvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      var ctx = canvas.getContext('2d');
+      page.render({canvasContext:ctx, viewport:viewport});
+      document.getElementById('mockPageLabel').textContent = mockCurrentPageNum + ' / ' + mockPdfDoc.numPages;
+    });
+  }
+  document.getElementById('mockPrevPageBtn').addEventListener('click', function(){
+    if(mockCurrentPageNum>1){ mockCurrentPageNum--; renderMockPage(); }
+  });
+  document.getElementById('mockNextPageBtn').addEventListener('click', function(){
+    if(mockPdfDoc && mockCurrentPageNum<mockPdfDoc.numPages){ mockCurrentPageNum++; renderMockPage(); }
+  });
+
+  /* ---- 드래그로 문제 영역 자르기 ---- */
+  var mockCanvasWrapEl = document.getElementById('mockCanvasWrap');
+  var mockCropBoxEl = document.getElementById('mockCropBox');
+  mockCanvasWrapEl.addEventListener('mousedown', function(e){
+    if(!mockPdfDoc) return;
+    var canvas = document.getElementById('mockPageCanvas');
+    var rect = canvas.getBoundingClientRect();
+    mockCropStart = { x: e.clientX - rect.left, y: e.clientY - rect.top, scrollX: mockCanvasWrapEl.scrollLeft, scrollY: mockCanvasWrapEl.scrollTop };
+    mockCropBoxEl.style.display = 'block';
+    mockCropBoxEl.style.left = mockCropStart.x + 'px';
+    mockCropBoxEl.style.top = mockCropStart.y + 'px';
+    mockCropBoxEl.style.width = '0px';
+    mockCropBoxEl.style.height = '0px';
+  });
+  mockCanvasWrapEl.addEventListener('mousemove', function(e){
+    if(!mockCropStart) return;
+    var canvas = document.getElementById('mockPageCanvas');
+    var rect = canvas.getBoundingClientRect();
+    var curX = e.clientX - rect.left;
+    var curY = e.clientY - rect.top;
+    var x = Math.min(curX, mockCropStart.x);
+    var y = Math.min(curY, mockCropStart.y);
+    var w = Math.abs(curX - mockCropStart.x);
+    var h = Math.abs(curY - mockCropStart.y);
+    mockCropBoxEl.style.left = x+'px'; mockCropBoxEl.style.top = y+'px';
+    mockCropBoxEl.style.width = w+'px'; mockCropBoxEl.style.height = h+'px';
+  });
+  window.addEventListener('mouseup', function(e){
+    if(!mockCropStart) return;
+    var canvas = document.getElementById('mockPageCanvas');
+    var rect = canvas.getBoundingClientRect();
+    var curX = e.clientX - rect.left;
+    var curY = e.clientY - rect.top;
+    var x0 = Math.min(curX, mockCropStart.x), y0 = Math.min(curY, mockCropStart.y);
+    var w = Math.abs(curX - mockCropStart.x), h = Math.abs(curY - mockCropStart.y);
+    mockCropStart = null;
+    mockCropBoxEl.style.display = 'none';
+    if(w < 15 || h < 15) return;
+    var scaleX = canvas.width / rect.width;
+    var scaleY = canvas.height / rect.height;
+    var sx = x0*scaleX, sy = y0*scaleY, sw = w*scaleX, sh = h*scaleY;
+    var tmp = document.createElement('canvas');
+    tmp.width = sw; tmp.height = sh;
+    tmp.getContext('2d').drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+    var mime = 'image/webp';
+    var testUrl = tmp.toDataURL(mime, 0.9);
+    if(testUrl.indexOf('data:image/webp') !== 0){ testUrl = tmp.toDataURL('image/png'); }
+    mockPendingCropDataUrl = testUrl;
+    document.getElementById('mockCropPreviewImg').src = testUrl;
+    document.getElementById('mockFormSubject').value = document.getElementById('mockDefaultSubject').value;
+    document.getElementById('mockFormLabel').value = document.getElementById('mockNextLabel').value;
+    document.getElementById('mockFormAnswer').value = '';
+    document.getElementById('mockCropFormPanel').style.display = 'block';
+    document.getElementById('mockCropFormPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+  });
+
+  document.getElementById('mockDiscardQBtn').addEventListener('click', function(){
+    mockPendingCropDataUrl = null;
+    document.getElementById('mockCropFormPanel').style.display = 'none';
+  });
+  document.getElementById('mockSaveQBtn').addEventListener('click', function(){
+    if(!mockPendingCropDataUrl){ showToast('먼저 문제 영역을 드래그로 잘라주세요'); return; }
+    var subjId = document.getElementById('mockFormSubject').value;
+    var label = document.getElementById('mockFormLabel').value.trim() || '문제';
+    var answer = document.getElementById('mockFormAnswer').value.trim();
+    var newQ = {
+      id: uid('mq'), subjectId: subjId, label: label, answer: answer, image: mockPendingCropDataUrl,
+      lastResult: null, correctCount:0, wrongCount:0, createdAt: new Date().toISOString()
+    };
+    mockQuestions.push(newQ);
+    saveMockQuestions();
+    syncMockQuestionToCloud(newQ);
+    mockPendingCropDataUrl = null;
+    document.getElementById('mockCropFormPanel').style.display = 'none';
+    // 다음 문제 번호 자동 증가 (숫자로 끝나면 +1)
+    var nextInput = document.getElementById('mockNextLabel');
+    var m = label.match(/(\d+)\s*$/);
+    if(m){ nextInput.value = (parseInt(m[1],10)+1) + label.slice(0, m.index).replace(/\d+$/,''); }
+    renderMockQManageList();
+    showToast('문제를 저장했어요. 이어서 다음 문제를 잘라보세요.');
+  });
+
+  function renderMockQManageList(){
+    document.getElementById('mockQCount').textContent = mockQuestions.length;
+    var listEl = document.getElementById('mockQManageList');
+    if(!mockQuestions.length){
+      listEl.innerHTML = '<div class="empty-state">아직 저장된 문제가 없어요. 위에서 PDF를 올리고 드래그로 잘라보세요.</div>';
+      return;
+    }
+    var groups = {};
+    mockQuestions.forEach(function(q){
+      var key = q.subjectId || 'none';
+      groups[key] = groups[key] || [];
+      groups[key].push(q);
+    });
+    var html = '';
+    Object.keys(groups).forEach(function(subjId){
+      var s = subjectById(subjId);
+      html += '<div class="mock-q-subject-group"><div class="mock-q-subject-head">'+(s?escapeHtml(s.name):'미분류')+' ('+groups[subjId].length+')</div>';
+      groups[subjId].forEach(function(q){
+        var badge = q.lastResult ? ('<span class="badge '+q.lastResult+'">'+(q.lastResult==='wrong'?'오답':'정답')+'</span>') : '';
+        html += '<div class="mock-q-row" data-q-id="'+q.id+'">'
+          + '<img class="mock-q-thumb" src="'+q.image+'">'
+          + '<div class="mock-q-label">'+escapeHtml(q.label)+(q.answer?(' · 정답 '+escapeHtml(q.answer)):'')+badge+'</div>'
+          + '<button class="mock-q-del" data-mock-del="'+q.id+'">삭제</button>'
+          + '</div>';
+      });
+      html += '</div>';
+    });
+    listEl.innerHTML = html;
+    listEl.querySelectorAll('[data-mock-del]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!confirm('이 문제를 삭제할까요?')) return;
+        var delId = btn.dataset.mockDel;
+        mockQuestions = mockQuestions.filter(function(q){return q.id!==delId;});
+        saveMockQuestions();
+        deleteMockQuestionFromCloud(delId);
+        renderMockQManageList();
+      });
+    });
+  }
+
+  /* ---- 문제 풀기 ---- */
+  function renderMockSolveSetup(){
+    renderMockSubjectSelects();
+    var totalCount = mockQuestions.length;
+    var wrongCount = mockQuestions.filter(function(q){return q.lastResult==='wrong';}).length;
+    document.getElementById('mockSolveSummary').innerHTML =
+      '<div class="mini-stat"><div class="n">'+totalCount+'</div><div class="l">전체 문제</div></div>'
+      + '<div class="mini-stat"><div class="n">'+wrongCount+'</div><div class="l">오답노트</div></div>';
+  }
+  document.getElementById('mockStartBtn').addEventListener('click', function(){
+    var subjFilter = document.getElementById('mockSolveSubject').value;
+    var scopeFilter = document.getElementById('mockSolveScope').value;
+    var pool = mockQuestions.filter(function(q){
+      if(subjFilter!=='all' && q.subjectId!==subjFilter) return false;
+      if(scopeFilter==='wrong' && q.lastResult!=='wrong') return false;
+      return true;
+    });
+    if(!pool.length){ showToast('조건에 맞는 문제가 없어요'); return; }
+    // 셔플
+    for(var i=pool.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=pool[i]; pool[i]=pool[j]; pool[j]=t; }
+    mockQuizQueue = pool;
+    mockQuizIndex = 0;
+    mockQuizRevealed = false;
+    document.getElementById('mockQuizArea').style.display = 'block';
+    document.getElementById('mockQuizEmpty').style.display = 'none';
+    showMockQuizQuestion();
+  });
+
+  function showMockQuizQuestion(){
+    if(mockQuizIndex >= mockQuizQueue.length){
+      document.getElementById('mockQuizProgress').textContent = '';
+      document.getElementById('mockQuizImg').style.display = 'none';
+      document.getElementById('mockQuizAnswerArea').innerHTML = '<div class="mock-quiz-done">여기까지 다 풀었어요! 수고했어요.</div>';
+      renderMockSolveSetup();
+      return;
+    }
+    var q = mockQuizQueue[mockQuizIndex];
+    document.getElementById('mockQuizImg').style.display = 'block';
+    document.getElementById('mockQuizImg').src = q.image;
+    document.getElementById('mockQuizProgress').textContent = (mockQuizIndex+1)+' / '+mockQuizQueue.length+'  ·  '+escapeHtml(q.label);
+    mockQuizRevealed = false;
+    document.getElementById('mockQuizAnswerArea').innerHTML = '<button class="btn btn-primary" id="mockRevealBtn" style="width:100%;">정답 확인</button>';
+    document.getElementById('mockRevealBtn').addEventListener('click', function(){
+      mockQuizRevealed = true;
+      document.getElementById('mockQuizAnswerArea').innerHTML =
+        '<div class="mock-quiz-answer-reveal">정답: <b>'+(escapeHtml(q.answer)||'(등록된 정답 없음)')+'</b></div>'
+        + '<div class="mock-quiz-grade-row">'
+        + '<button class="btn btn-danger" id="mockWrongBtn">틀렸어요</button>'
+        + '<button class="btn btn-primary" id="mockRightBtn">맞았어요</button>'
+        + '</div>';
+      document.getElementById('mockWrongBtn').addEventListener('click', function(){ gradeMockQuestion(q, false); });
+      document.getElementById('mockRightBtn').addEventListener('click', function(){ gradeMockQuestion(q, true); });
+    });
+  }
+  function gradeMockQuestion(q, correct){
+    if(correct){ q.correctCount = (q.correctCount||0)+1; q.lastResult = 'right'; }
+    else { q.wrongCount = (q.wrongCount||0)+1; q.lastResult = 'wrong'; }
+    saveMockQuestions();
+    syncMockQuestionToCloud(q);
+    mockQuizIndex++;
+    showMockQuizQuestion();
+  }
+
+  /* ================= PLANNER (TODO) ================= */
+  function todosForDate(d){ return todos.filter(function(t){return t.date===d;}).sort(function(a,b){return (a.createdAt||'').localeCompare(b.createdAt||'');}); }
+  function formatDateLabel(d){
+    if(!d) return '';
+    var parts=d.split('-'); var dt=new Date(parseInt(parts[0],10),parseInt(parts[1],10)-1,parseInt(parts[2],10));
+    return (dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+DOW[dt.getDay()]+')';
+  }
+  function renderTodos(){
+    document.getElementById('todoDateInput').value = selectedTodoDate;
+    document.getElementById('todoDateTitle').textContent = formatDateLabel(selectedTodoDate)+' 할 일';
+    var list = todosForDate(selectedTodoDate);
+    var listEl = document.getElementById('todoList');
+    if(!list.length){
+      listEl.innerHTML = '<div class="empty-state" style="padding:20px 0;">이 날짜에 등록된 할 일이 없어요.</div>';
+    } else {
+      listEl.innerHTML = list.map(function(t){
+        return '<div class="todo-item'+(t.done?' done':'')+'">'
+          + '<input type="checkbox" class="todo-check" data-toggle-todo="'+t.id+'"'+(t.done?' checked':'')+'>'
+          + '<div class="todo-text">'+escapeHtml(t.text)+'</div>'
+          + '<button class="todo-del" data-del-todo="'+t.id+'">✕</button></div>';
+      }).join('');
+      listEl.querySelectorAll('[data-toggle-todo]').forEach(function(chk){
+        chk.addEventListener('change', function(){
+          var t = todos.find(function(x){return x.id===chk.dataset.toggleTodo;});
+          if(t){
+            t.done = chk.checked;
+            saveTodos();
+            if(t.lectureId){
+              var l = lectures.find(function(x){return x.id===t.lectureId;});
+              if(l){
+                l.done = chk.checked;
+                l.watchedAt = chk.checked ? new Date().toISOString() : null;
+                saveLectures();
+                if(playingLectureId===l.id) updatePlayerActionButtons(l);
+              }
+            }
+            renderTodos();
+            renderDashboard();
+          }
+        });
+      });
+      listEl.querySelectorAll('[data-del-todo]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          todos = todos.filter(function(x){return x.id!==btn.dataset.delTodo;});
+          saveTodos(); renderTodos(); renderDashboard();
+        });
+      });
+    }
+    document.getElementById('allTodoDoneCount').textContent = todos.filter(function(t){return t.done;}).length;
+  }
+  function addTodo(text){
+    text=text.trim(); if(!text) return;
+    todos.push({id:uid('t'), date:selectedTodoDate, text:text, done:false, createdAt:new Date().toISOString()});
+    saveTodos(); renderTodos(); renderDashboard();
+  }
+  document.getElementById('todoDateInput').addEventListener('change', function(e){ selectedTodoDate=e.target.value; renderTodos(); });
+  document.getElementById('todoAddBtn').addEventListener('click', function(){
+    var inp=document.getElementById('todoInput'); addTodo(inp.value); inp.value='';
+  });
+  document.getElementById('todoInput').addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); addTodo(this.value); this.value=''; }
+  });
+  document.getElementById('examDateSaveBtn').addEventListener('click', function(){
+    examDate = document.getElementById('examDateInput').value;
+    saveExamDate(); renderDdayTicket();
+    showToast('시험일을 저장했어요');
+  });
+
+  /* ================= STOPWATCH (on dashboard) ================= */
+  function fmtStopwatch(ms){
+    var totalSec = Math.floor(ms/1000);
+    var h = Math.floor(totalSec/3600), m = Math.floor((totalSec%3600)/60), s = totalSec%60;
+    return pad2(h)+':'+pad2(m)+':'+pad2(s);
+  }
+  function tickStopwatch(){
+    var elapsed = swElapsedBefore + (Date.now()-swStartTs);
+    document.getElementById('swDisplay').textContent = fmtStopwatch(elapsed);
+  }
+  document.getElementById('swStartBtn').addEventListener('click', function(){
+    swRunning = true; swStartTs = Date.now();
+    document.getElementById('swStartBtn').style.display='none';
+    document.getElementById('swStopBtn').style.display='inline-flex';
+    var subj = subjectById(document.getElementById('swSubjectSelect').value);
+    document.getElementById('swStatusText').textContent = '공부 중' + (subj ? (' · '+subj.name) : '');
+    swTimer = setInterval(tickStopwatch, 1000);
+  });
+  document.getElementById('swStopBtn').addEventListener('click', function(){
+    var elapsed = swElapsedBefore + (Date.now()-swStartTs);
+    clearInterval(swTimer);
+    swRunning = false;
+    document.getElementById('swStartBtn').style.display='inline-flex';
+    document.getElementById('swStopBtn').style.display='none';
+    document.getElementById('swStatusText').textContent = '대기 중';
+    var durationSec = Math.round(elapsed/1000);
+    if(durationSec >= 10){
+      sessions.push({id:uid('sess'), date:todayStr(), subjectId:document.getElementById('swSubjectSelect').value, durationSec:durationSec, endedAt:new Date().toISOString()});
+      saveSessions();
+      renderSessionLog();
+      renderDashboard();
+      showToast('공부 기록을 저장했어요 ('+Math.round(durationSec/60)+'분)');
+    }
+    swElapsedBefore = 0;
+    document.getElementById('swDisplay').textContent = '00:00:00';
+  });
+  document.getElementById('swResetBtn').addEventListener('click', function(){
+    clearInterval(swTimer); swRunning=false; swElapsedBefore=0;
+    document.getElementById('swDisplay').textContent='00:00:00';
+    document.getElementById('swStartBtn').style.display='inline-flex';
+    document.getElementById('swStopBtn').style.display='none';
+    document.getElementById('swStatusText').textContent='대기 중';
+  });
+
+  function renderSessionLog(){
+    var listEl = document.getElementById('sessionLog');
+    if(!sessions.length){
+      listEl.innerHTML = '<div class="empty-state" style="padding:20px 0;">아직 기록된 공부 세션이 없어요.</div>';
+    } else {
+      var byDate = {};
+      sessions.slice().sort(function(a,b){return (b.endedAt||'').localeCompare(a.endedAt||'');}).forEach(function(s){
+        byDate[s.date] = byDate[s.date] || [];
+        byDate[s.date].push(s);
+      });
+      var dates = Object.keys(byDate).sort().reverse();
+      listEl.innerHTML = dates.map(function(d){
+        var daySessions = byDate[d];
+        var total = daySessions.reduce(function(a,s){return a+s.durationSec;},0);
+        return '<div class="session-day-group">'
+          + '<div class="session-day-label">'+formatDateLabel(d)+' · 총 '+Math.round(total/60)+'분</div>'
+          + daySessions.map(function(s){
+              var subj = subjectById(s.subjectId);
+              return '<div class="session-row"><span class="session-subject">'+(subj?escapeHtml(subj.name):'미분류')+'</span>'
+                + '<span><span class="session-dur">'+Math.round(s.durationSec/60)+'분</span>'
+                + '<button class="session-del" data-del-sess="'+s.id+'">✕</button></span></div>';
+            }).join('')
+          + '</div>';
+      }).join('');
+      listEl.querySelectorAll('[data-del-sess]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          sessions = sessions.filter(function(x){return x.id!==btn.dataset.delSess;});
+          saveSessions(); renderSessionLog(); renderDashboard();
+        });
+      });
+    }
+    renderSessionCalendar();
+  }
+
+  /* ---- 공부기록 캘린더(히트맵) ---- */
+  function fmtDateLocal(y,m,d){ return fmtDate(y,m,d); }
+  function sessionsTotalMinForDate(dateStr){
+    var sec = sessions.filter(function(s){return s.date===dateStr;}).reduce(function(a,s){return a+s.durationSec;},0);
+    return Math.round(sec/60);
+  }
+  function heatLevelForMinutes(min){
+    if(min<=0) return 0;
+    if(min<30) return 1;
+    if(min<60) return 2;
+    if(min<120) return 3;
+    return 4;
+  }
+  function renderSessionCalendar(){
+    var titleEl = document.getElementById('sessCalTitle');
+    if(!titleEl) return;
+    titleEl.textContent = sessCalYear+'년 '+sessCalMonth+'월';
+
+    var first = new Date(sessCalYear, sessCalMonth-1, 1);
+    var gridStart = new Date(first); gridStart.setDate(first.getDate() - first.getDay());
+    var lastOfMonth = new Date(sessCalYear, sessCalMonth, 0);
+    var gridEnd = new Date(lastOfMonth); gridEnd.setDate(lastOfMonth.getDate() + (6-lastOfMonth.getDay()));
+
+    var greenHex = (getComputedStyle(document.documentElement).getPropertyValue('--green')||'#3D6B4C').trim() || '#3D6B4C';
+    var rgb = hexToRgb(greenHex);
+    var alphaLevels = [0, 0.18, 0.38, 0.58, 0.85];
+
+    var dowHtml = DOW.map(function(d){ return '<div class="sess-cal-dow">'+d+'</div>'; }).join('');
+    var cellsHtml = '';
+    var cursor = new Date(gridStart);
+    while(cursor <= gridEnd){
+      var y=cursor.getFullYear(), m=cursor.getMonth()+1, d=cursor.getDate();
+      var dateStr = fmtDateLocal(y,m,d);
+      var inMonth = (m===sessCalMonth && y===sessCalYear);
+      var totalMin = sessionsTotalMinForDate(dateStr);
+      var lvl = heatLevelForMinutes(totalMin);
+      var alpha = alphaLevels[lvl];
+      var bg = inMonth ? ('rgba('+rgb.r+','+rgb.g+','+rgb.b+','+alpha+')') : 'transparent';
+      var textColor = inMonth ? (lvl>=3 ? '#fff' : 'var(--ink)') : 'var(--ink-faint)';
+      cellsHtml += '<div class="sess-cal-day'+(inMonth?'':' out')+'" data-date="'+dateStr+'" style="background:'+bg+';color:'+textColor+';">'
+        + '<div class="scd-num">'+d+'</div>'
+        + (inMonth && totalMin>0 ? '<div class="scd-min">'+totalMin+'분</div>' : '')
+        + '</div>';
+      cursor.setDate(cursor.getDate()+1);
+    }
+    document.getElementById('sessCalGrid').innerHTML = '<div class="sess-cal-dow-row">'+dowHtml+'</div><div class="sess-cal-days">'+cellsHtml+'</div>';
+    document.querySelectorAll('.sess-cal-day[data-date]').forEach(function(cell){
+      cell.addEventListener('click', function(){ openSessionDayModal(cell.dataset.date); });
+    });
+  }
+  function openSessionDayModal(dateStr){
+    var daySessions = sessions.filter(function(s){return s.date===dateStr;});
+    var total = daySessions.reduce(function(a,s){return a+s.durationSec;},0);
+    var body = '<h3>'+formatDateLabel(dateStr)+'</h3>'
+      + '<div class="save-hint" style="margin-bottom:10px;">총 '+Math.round(total/60)+'분 공부했어요.</div>';
+    if(!daySessions.length){
+      body += '<div class="empty-state" style="padding:20px 0;">이 날짜에 기록된 공부 세션이 없어요.</div>';
+    } else {
+      body += '<div>' + daySessions.map(function(s){
+        var subj = subjectById(s.subjectId);
+        return '<div class="session-row"><span class="session-subject">'+(subj?escapeHtml(subj.name):'미분류')+'</span>'
+          + '<span><span class="session-dur">'+Math.round(s.durationSec/60)+'분</span>'
+          + '<button class="session-del" data-del-sess-modal="'+s.id+'">✕</button></span></div>';
+      }).join('') + '</div>';
+    }
+    body += '<div class="modal-close-row"><button class="btn" id="modalCloseBtn">닫기</button></div>';
+    openModal(body, true);
+    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+    document.querySelectorAll('[data-del-sess-modal]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        sessions = sessions.filter(function(x){return x.id!==btn.dataset.delSessModal;});
+        saveSessions();
+        renderSessionLog();
+        renderDashboard();
+        openSessionDayModal(dateStr);
+      });
+    });
+  }
+  var sessCalPrevEl = document.getElementById('sessCalPrev');
+  if(sessCalPrevEl){
+    sessCalPrevEl.addEventListener('click', function(){
+      sessCalMonth--; if(sessCalMonth<1){ sessCalMonth=12; sessCalYear--; }
+      renderSessionCalendar();
+    });
+  }
+  var sessCalNextEl = document.getElementById('sessCalNext');
+  if(sessCalNextEl){
+    sessCalNextEl.addEventListener('click', function(){
+      sessCalMonth++; if(sessCalMonth>12){ sessCalMonth=1; sessCalYear++; }
+      renderSessionCalendar();
+    });
+  }
+
+  /* ================= AI PLANNER (CHAT) — 탭 화면과 하단 플로팅 위젯이 같은 대화(chatMessages)를 공유 ================= */
+  function renderChatWindow(win){
+    if(!win) return;
+    if(!chatMessages.length){
+      win.innerHTML = '<div class="chat-empty">현재 진도율·D-day·오늘 할일을 참고해서 계획을 짜줄 수 있어요. 아래 버튼을 누르거나 직접 물어보세요.</div>';
+      return;
+    }
+    win.innerHTML = chatMessages.map(function(m, idx){
+      var isUser = m.role==='user';
+      var body = isUser ? escapeHtml(m.content) : renderMarkdown(m.content);
+      var actionBtn = (!isUser && m.actions && m.actions.length)
+        ? '<button class="btn btn-primary btn-sm chat-apply-btn" data-msg-idx="'+idx+'" style="margin-top:8px;">플래너에 반영하기 ('+m.actions.length+'개)</button>'
+        : '';
+      return '<div class="chat-bubble '+(isUser?'user':'assistant')+'">'+body+actionBtn+'</div>';
+    }).join('');
+    win.scrollTop = win.scrollHeight;
+    win.querySelectorAll('.chat-apply-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var msg = chatMessages[parseInt(btn.dataset.msgIdx,10)];
+        if(msg && msg.actions) openActionsConfirmModal(msg.actions);
+      });
+    });
+  }
+  function renderAllChatWindows(){
+    renderChatWindow(document.getElementById('chatWindow'));
+    renderChatWindow(document.getElementById('fabChatWindow'));
+  }
+  function appendPendingBubbles(){
+    ['chatWindow','fabChatWindow'].forEach(function(id){
+      var win = document.getElementById(id);
+      if(!win) return;
+      var p = document.createElement('div');
+      p.className = 'chat-bubble pending';
+      p.textContent = '생각하는 중...';
+      win.appendChild(p);
+      win.scrollTop = win.scrollHeight;
+    });
+  }
+  function setChatSendingState(disabled){
+    var b1 = document.getElementById('chatSendBtn'); if(b1) b1.disabled = disabled;
+    var b2 = document.getElementById('fabChatSendBtn'); if(b2) b2.disabled = disabled;
+  }
+
+  function actionLabel(a){
+    if(a.type==='add_todo') return formatDateLabel(a.date) + ' · ' + a.text;
+    if(a.type==='set_exam_date') return '시험일을 ' + a.date + '로 설정';
+    return '';
+  }
+  function openActionsConfirmModal(actions){
+    openModal(
+      '<h3>플래너에 반영하기</h3>'
+      + '<div class="save-hint" style="margin-bottom:10px;">체크된 항목만 실제로 등록돼요. 필요 없는 건 체크를 해제해주세요.</div>'
+      + '<div class="import-list-scroll" id="actConfirmList">' + actions.map(function(a, idx){
+          return '<div class="import-row"><input type="checkbox" class="act-check" data-act-idx="'+idx+'" checked>'
+            + '<span class="imp-title">'+escapeHtml(actionLabel(a))+'</span></div>';
+        }).join('') + '</div>'
+      + '<div class="modal-close-row"><button class="btn" id="modalCancel">취소</button><button class="btn btn-primary" id="modalApply">선택 항목 반영</button></div>'
+    , true);
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    document.getElementById('modalApply').addEventListener('click', function(){
+      var applied = 0;
+      document.querySelectorAll('.act-check').forEach(function(chk){
+        if(!chk.checked) return;
+        var a = actions[parseInt(chk.dataset.actIdx,10)];
+        if(!a) return;
+        if(a.type==='add_todo'){
+          todos.push({id:uid('t'), date:a.date, text:a.text, done:false, createdAt:new Date().toISOString()});
+          applied++;
+        } else if(a.type==='set_exam_date'){
+          examDate = a.date;
+          saveExamDate();
+          document.getElementById('examDateInput').value = examDate;
+          renderDdayTicket();
+          applied++;
+        }
+      });
+      saveTodos();
+      renderTodos();
+      renderDashboard();
+      closeModal();
+      showToast(applied+'개 항목을 플래너에 반영했어요');
+    });
+  }
+
+  function buildContextSummary(){
+    var totalLec = lectures.length, doneLec = lectures.filter(function(l){return l.done;}).length;
+    var subjSummary = subjects.map(function(s){
+      var sl = lectures.filter(function(l){return l.subjectId===s.id;});
+      var sd = sl.filter(function(l){return l.done;}).length;
+      return s.name+': '+sd+'/'+sl.length+'강 완료';
+    }).join(', ');
+    var d = examDate ? daysUntil(examDate) : null;
+    var recentTodos = todos.filter(function(t){return !t.done;}).slice(-8).map(function(t){return t.date+' - '+t.text;}).join(' / ');
+    var todaySec = sessions.filter(function(s){return s.date===todayStr();}).reduce(function(a,s){return a+s.durationSec;},0);
+    var last7 = sessions.filter(function(s){
+      var d2 = daysUntil(s.date); return d2!==null && d2<=0 && d2>-7;
+    }).reduce(function(a,s){return a+s.durationSec;},0);
+    return '오늘 날짜: '+todayStr()+'\n시험일: '+(examDate||'미설정')+(d!==null?(' (D-'+d+')'):'')+'\n'
+      + '전체 강의 진도율: '+doneLec+'/'+totalLec+'\n과목별 진도: '+(subjSummary||'등록된 과목 없음')+'\n'
+      + '아직 안한 할일 목록: '+(recentTodos||'없음')+'\n'
+      + '오늘 공부시간: '+Math.round(todaySec/60)+'분, 최근 7일 누적: '+Math.round(last7/60)+'분';
+  }
+
+  /* AI 응답에서 ```actions 블록을 파싱해서 실행 가능한 action 목록으로 분리 */
+  function extractActionsFromReply(text){
+    var m = text.match(/```actions\s*([\s\S]*?)```/i);
+    if(!m) return { cleanText: text, actions: [] };
+    var actions = [];
+    try{
+      var parsed = JSON.parse(m[1].trim());
+      if(Array.isArray(parsed)) actions = parsed;
+    }catch(e){ actions = []; }
+    var validTypes = {add_todo:1, set_exam_date:1};
+    actions = actions.filter(function(a){
+      if(!a || !validTypes[a.type]) return false;
+      if(a.type==='add_todo') return !!(a.date && a.text);
+      if(a.type==='set_exam_date') return !!a.date;
+      return false;
+    });
+    var cleanText = text.replace(m[0], '').trim();
+    return { cleanText: cleanText, actions: actions };
+  }
+
+  var QUICK_PROMPTS = {
+    week: '내 현재 진도와 D-day를 참고해서 이번주 학습계획을 요일별로 짜줘.',
+    weak: '과목별 진도율을 보고 상대적으로 늦은 과목이 뭔지 짚어주고, 어떻게 보완하면 좋을지 알려줘.',
+    motivate: '지금까지 진도랑 남은 시험일을 보고, 현실적이면서 다정한 동기부여 한마디 해줘.',
+    checkin: '지금 내 전체 상황(진도율, 오늘 할일, 최근 공부기록)을 보고 잘 하고 있는지, 부족한 부분이나 신경 써야 할 점을 편하게 짚어줘.'
+  };
+  document.querySelectorAll('.quick-prompt-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ sendChatText(QUICK_PROMPTS[btn.dataset.quick]); });
+  });
+
+  function handleChatSend(inputEl){
+    if(!inputEl) return;
+    var text = inputEl.value.trim();
+    if(!text) return;
+    inputEl.value = '';
+    sendChatText(text);
+  }
+  var chatInputEl = document.getElementById('chatInput');
+  var chatSendBtnEl = document.getElementById('chatSendBtn');
+  if(chatSendBtnEl){ chatSendBtnEl.addEventListener('click', function(){ handleChatSend(chatInputEl); }); }
+  if(chatInputEl){
+    chatInputEl.addEventListener('keydown', function(e){
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); handleChatSend(chatInputEl); }
+    });
+  }
+  var fabChatInputEl = document.getElementById('fabChatInput');
+  var fabChatSendBtnEl = document.getElementById('fabChatSendBtn');
+  if(fabChatSendBtnEl){ fabChatSendBtnEl.addEventListener('click', function(){ handleChatSend(fabChatInputEl); }); }
+  if(fabChatInputEl){
+    fabChatInputEl.addEventListener('keydown', function(e){
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); handleChatSend(fabChatInputEl); }
+    });
+  }
+
+  /* 카톡처럼 뜨는 하단 플로팅 채팅 위젯 토글 */
+  var aiFabBtnEl = document.getElementById('aiFabBtn');
+  var aiChatPanelEl = document.getElementById('aiChatPanel');
+  if(aiFabBtnEl){
+    aiFabBtnEl.addEventListener('click', function(){
+      var isOpen = aiChatPanelEl.classList.toggle('open');
+      aiFabBtnEl.textContent = isOpen ? '✕' : '👀';
+      if(isOpen){
+        renderChatWindow(document.getElementById('fabChatWindow'));
+        setTimeout(function(){ if(fabChatInputEl) fabChatInputEl.focus(); }, 60);
+      }
+    });
+  }
+  var aiChatCloseBtnEl = document.getElementById('aiChatCloseBtn');
+  if(aiChatCloseBtnEl){
+    aiChatCloseBtnEl.addEventListener('click', function(){
+      aiChatPanelEl.classList.remove('open');
+      aiFabBtnEl.textContent = '👀';
+    });
+  }
+
+  async function sendChatText(text){
+    text = (text||'').trim();
+    if(!text) return;
+    chatMessages.push({role:'user', content:text});
+    saveChat();
+    renderAllChatWindows();
+    appendPendingBubbles();
+    setChatSendingState(true);
+
+    var systemPrompt = '너는 컴활 1급 시험을 준비하는 사용자를 돕는 다정하고 현실적인 학습 코치야. '
+      + '아래 사용자의 현재 학습 현황을 참고해서 구체적이고 실행 가능한 조언/계획을 줘. 막연한 격려보다는 실질적인 스케줄과 우선순위를 제시해줘. '
+      + '답변은 너무 길지 않게, 대화체로 해줘.\n\n'
+      + '만약 구체적인 학습 계획(날짜별 할일)을 제안하는 상황이라면, 자연어 답변을 다 쓴 다음 맨 마지막에 아래 형식의 코드블럭을 반드시 추가해줘. '
+      + '이 블록에 담긴 항목들은 사용자가 확인 후 실제 플래너에 등록할 수 있어. 계획 제안이 아닐 때는 이 블록을 넣지 마.\n'
+      + '```actions\n[{"type":"add_todo","date":"YYYY-MM-DD","text":"할일 내용"}]\n```\n'
+      + '시험일을 새로 정하자고 제안하는 경우에는 {"type":"set_exam_date","date":"YYYY-MM-DD"} 항목도 같은 배열에 포함시켜줘. '
+      + 'date는 반드시 오늘(' + todayStr() + ') 이후 날짜로, YYYY-MM-DD 형식만 사용해줘.'
+      + '\n\n[현재 학습 현황]\n' + buildContextSummary();
+
+    try{
+      var apiMessages = chatMessages.map(function(m){return {role:m.role, content:m.content};});
+      var reply = await callAI(systemPrompt, apiMessages);
+      if(!reply) throw new Error('empty_reply');
+      var parsed = extractActionsFromReply(reply);
+      chatMessages.push({role:'assistant', content:parsed.cleanText, actions:parsed.actions});
+    }catch(err){
+      var msg = (err && err.message==='worker_not_configured')
+        ? 'AI_WORKER_URL이 아직 설정 안 됐어요.'
+        : '앗, 응답을 받아오는데 문제가 생겼어요. 잠시 후 다시 시도해주세요.';
+      chatMessages.push({role:'assistant', content:msg});
+    } finally {
+      setChatSendingState(false);
+      saveChat();
+      renderAllChatWindows();
+    }
+  }
+
+  /* ================= THEME EVENTS ================= */
+  var themePrimaryPickerEl = document.getElementById('themePrimaryPicker');
+  var themePrimaryTextEl = document.getElementById('themePrimaryText');
+  if(themePrimaryPickerEl){
+    themePrimaryPickerEl.addEventListener('input', function(){
+      themePrimaryTextEl.value = themePrimaryPickerEl.value;
+      updateThemeField('primary', themePrimaryPickerEl.value);
+    });
+  }
+  if(themePrimaryTextEl){
+    themePrimaryTextEl.addEventListener('change', function(){
+      if(/^#[0-9a-fA-F]{6}$/.test(themePrimaryTextEl.value)){
+        themePrimaryPickerEl.value = themePrimaryTextEl.value;
+        updateThemeField('primary', themePrimaryTextEl.value);
+      }
+    });
+  }
+  var themeAccentPickerEl = document.getElementById('themeAccentPicker');
+  var themeAccentTextEl = document.getElementById('themeAccentText');
+  if(themeAccentPickerEl){
+    themeAccentPickerEl.addEventListener('input', function(){
+      themeAccentTextEl.value = themeAccentPickerEl.value;
+      updateThemeField('accent', themeAccentPickerEl.value);
+    });
+  }
+  if(themeAccentTextEl){
+    themeAccentTextEl.addEventListener('change', function(){
+      if(/^#[0-9a-fA-F]{6}$/.test(themeAccentTextEl.value)){
+        themeAccentPickerEl.value = themeAccentTextEl.value;
+        updateThemeField('accent', themeAccentTextEl.value);
+      }
+    });
+  }
+  var themeBgUrlApplyBtnEl = document.getElementById('themeBgUrlApplyBtn');
+  if(themeBgUrlApplyBtnEl){
+    themeBgUrlApplyBtnEl.addEventListener('click', function(){
+      var url = document.getElementById('themeBgUrlInput').value.trim();
+      if(!url){ showToast('이미지 URL을 입력해주세요'); return; }
+      updateThemeField('bgImage', url);
+      renderThemeView();
+      showToast('배경 이미지를 적용했어요');
+    });
+  }
+  var themeBgFileInputEl = document.getElementById('themeBgFileInput');
+  if(themeBgFileInputEl){
+    themeBgFileInputEl.addEventListener('change', function(e){
+      var file = e.target.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        updateThemeField('bgImage', ev.target.result);
+        renderThemeView();
+        showToast('배경 이미지를 적용했어요');
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+  }
+  var themeBgClearBtnEl = document.getElementById('themeBgClearBtn');
+  if(themeBgClearBtnEl){
+    themeBgClearBtnEl.addEventListener('click', function(){
+      updateThemeField('bgImage', '');
+      renderThemeView();
+      showToast('배경 이미지를 제거했어요');
+    });
+  }
+  var themeBgOpacityEl = document.getElementById('themeBgOpacity');
+  if(themeBgOpacityEl){
+    themeBgOpacityEl.addEventListener('input', function(){
+      updateThemeField('bgOpacity', parseInt(themeBgOpacityEl.value,10));
+    });
+  }
+  var themeResetBtnEl = document.getElementById('themeResetBtn');
+  if(themeResetBtnEl){
+    themeResetBtnEl.addEventListener('click', function(){
+      if(!confirm('테마를 기본값으로 되돌릴까요?')) return;
+      themeSettings = Object.assign({}, THEME_DEFAULT);
+      applyTheme();
+      saveThemeSettings();
+      renderThemeView();
+      showToast('기본 테마로 되돌렸어요');
+    });
+  }
+
+  /* ================= BACKUP ================= */
+  document.getElementById('backupDownloadBtn').addEventListener('click', function(){
+    var backup = { exportedAt:new Date().toISOString(), subjects:subjects, lectures:lectures, todos:todos, sessions:sessions, examDate:examDate, chatMessages:chatMessages, mockQuestions:mockQuestions, themeSettings:themeSettings };
+    var blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href=url; a.download = 'study-desk-backup-'+todayStr()+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+    showToast('백업 파일을 다운로드했어요');
+  });
+  document.getElementById('backupFileInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    var resultEl = document.getElementById('backupResult');
+    if(!file) return;
+    if(!confirm('현재 데이터를 백업 파일 내용으로 덮어씁니다. 계속할까요?')){ e.target.value=''; return; }
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var b = JSON.parse(ev.target.result);
+        subjects = Array.isArray(b.subjects) ? b.subjects : subjects;
+        lectures = Array.isArray(b.lectures) ? b.lectures : lectures;
+        todos = Array.isArray(b.todos) ? b.todos : todos;
+        sessions = Array.isArray(b.sessions) ? b.sessions : sessions;
+        examDate = b.examDate || examDate;
+        chatMessages = Array.isArray(b.chatMessages) ? b.chatMessages : chatMessages;
+        mockQuestions = Array.isArray(b.mockQuestions) ? b.mockQuestions : mockQuestions;
+        themeSettings = b.themeSettings || themeSettings;
+        saveSubjects(); saveLectures(); saveTodos(); saveSessions(); saveExamDate(); saveChat(); saveMockQuestions(); saveThemeSettings();
+        applyTheme();
+        renderAll();
+        resultEl.style.color='var(--green)'; resultEl.textContent='복원 완료했어요.';
+        showToast('데이터를 복원했어요');
+      }catch(err){
+        resultEl.style.color='var(--red)'; resultEl.textContent='파일을 읽는 데 실패했어요.';
+      }
+      e.target.value='';
+    };
+    reader.readAsText(file);
+  });
+
+  /* ================= INIT ================= */
+  function renderAll(){
+    renderDashboard();
+    renderLectureRoom();
+    renderTodos();
+    renderSessionLog();
+    renderAllChatWindows();
+    renderMockSubjectSelects();
+    renderMockQManageList();
+    renderMockSolveSetup();
+    renderThemeView();
+    document.getElementById('examDateInput').value = examDate || '';
+  }
+
+  function init(){
+    subjects = getLocal('subjects', null);
+    if(!subjects){ subjects = DEFAULT_SUBJECTS.slice(); saveSubjects(); }
+    lectures = getLocal('lectures', []);
+    todos = getLocal('todos', []);
+    sessions = getLocal('sessions', []);
+    examDate = getLocal('examDate', '');
+    chatMessages = getLocal('chatMessages', []);
+    ytApiKey = getLocal('ytApiKey', '');
+    themeSettings = getLocal('themeSettings', null) || Object.assign({}, THEME_DEFAULT);
+    mockQuestions = getLocal('mockQuestions', []);
+    applyTheme();
+    renderAll();
+    updateAuthUI();
+  }
+  init();
+})();
+</script>
+</body>
+</html>
