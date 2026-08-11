@@ -130,7 +130,7 @@
   .subject-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
   .subject-progress-name{font-size:13px;font-weight:600;flex:0 0 128px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .subject-progress-bar{flex:1;height:8px;background:var(--surface-soft);border-radius:5px;overflow:hidden;}
-  .subject-progress-fill{height:100%;border-radius:5px;}
+  .subject-progress-fill{height:100%;border-radius:5px;display:block;transition:width .5s cubic-bezier(.22,.9,.34,1),background-color .3s ease;}
   .subject-progress-pct{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);flex:0 0 40px;text-align:right;}
 
   .todo-today-list{margin-top:2px;}
@@ -287,8 +287,10 @@
   .theme-bg-preview{
     width:100%;height:120px;border-radius:10px;border:1px solid var(--line);background-size:cover;background-position:center;
     background-color:var(--surface-soft);display:flex;align-items:center;justify-content:center;color:var(--ink-faint);
-    font-size:12px;margin-bottom:10px;
+    font-size:12px;margin-bottom:10px;position:relative;overflow:hidden;
   }
+  .theme-bg-preview .theme-bg-preview-label{position:relative;z-index:1;background:rgba(255,255,255,.72);padding:2px 8px;border-radius:6px;}
+  .theme-bg-preview .theme-bg-preview-tint{position:absolute;inset:0;}
 
   /* ---------- Mock exam ---------- */
   .subtabs{display:flex;gap:6px;margin-bottom:16px;}
@@ -413,8 +415,8 @@
       <div class="panel">
         <div class="ring-wrap">
           <svg id="ringSvg" width="150" height="150" viewBox="0 0 150 150">
-            <circle cx="75" cy="75" r="62" fill="none" stroke="#EAF0E7" stroke-width="14"/>
-            <circle id="ringFg" cx="75" cy="75" r="62" fill="none" stroke="#3D6B4C" stroke-width="14" stroke-linecap="round" transform="rotate(-90 75 75)"/>
+            <circle cx="75" cy="75" r="62" fill="none" style="stroke:var(--green-soft)" stroke-width="14"/>
+            <circle id="ringFg" cx="75" cy="75" r="62" fill="none" style="stroke:var(--green)" stroke-width="14" stroke-linecap="round" transform="rotate(-90 75 75)"/>
           </svg>
           <div class="ring-num" id="ringNum">0%</div>
           <div class="ring-caption">전체 강의 진도율<br><span id="ringSubCaption">0 / 0 강의 시청완료</span></div>
@@ -655,7 +657,10 @@
       </div>
       <div style="height:1px;background:var(--line);margin:16px 0;"></div>
       <label>배경 이미지</label>
-      <div class="theme-bg-preview" id="themeBgPreview">설정된 배경 이미지가 없어요</div>
+      <div class="theme-bg-preview" id="themeBgPreview">
+        <div class="theme-bg-preview-tint" id="themeBgPreviewTint"></div>
+        <span class="theme-bg-preview-label" id="themeBgPreviewLabel">설정된 배경 이미지가 없어요</span>
+      </div>
       <div class="field"><input type="url" id="themeBgUrlInput" placeholder="이미지 URL 붙여넣기"></div>
       <div class="btn-row" style="margin-bottom:14px;">
         <button class="btn btn-sm" id="themeBgUrlApplyBtn">URL 적용</button>
@@ -664,8 +669,17 @@
         <button class="btn btn-ghost btn-sm" id="themeBgClearBtn">배경 이미지 제거</button>
       </div>
       <div class="field">
-        <label for="themeBgOpacity">배경 위 화면 밝기 (이미지가 너무 진하면 올려보세요)</label>
-        <input type="range" id="themeBgOpacity" min="40" max="100" step="5">
+        <label>배경 이미지 색상 (오버레이 틴트)</label>
+        <div class="color-field-row">
+          <input type="color" id="themeBgTintPicker">
+          <input type="text" id="themeBgTintText" placeholder="#RRGGBB">
+          <button class="btn btn-sm" id="themeBgTintMainBtn" style="flex:0 0 auto;" title="메인 색상으로 맞추기">메인색 사용</button>
+        </div>
+        <div class="save-hint">배경 사진 위에 이 색으로 은은하게 색을 입혀요. 흰색이면 지금처럼 밝기만 조절돼요.</div>
+      </div>
+      <div class="field">
+        <label for="themeBgOpacity">배경 위 색상 오버레이 강도 (이미지가 너무 진하면 올려보세요)</label>
+        <input type="range" id="themeBgOpacity" min="0" max="100" step="5">
       </div>
       <button class="btn btn-danger btn-sm" id="themeResetBtn">기본 테마로 초기화</button>
       <div class="save-hint" style="margin-top:8px;">테마는 이 브라우저에 자동 저장되고, 강의·플래너 등 기존 데이터에는 영향을 주지 않아요.</div>
@@ -779,7 +793,7 @@
   var chatMessages = [];
   var ytApiKey = '';
   var themeSettings = null;
-  var THEME_DEFAULT = { primary:'#3D6B4C', accent:'#B8842E', bgImage:'', bgOpacity:90 };
+  var THEME_DEFAULT = { primary:'#3D6B4C', accent:'#B8842E', bgImage:'', bgOpacity:90, bgTintColor:'#ffffff' };
 
   var mockQuestions = [];
   var mockPdfDoc = null;
@@ -994,8 +1008,9 @@
     root.setProperty('--gold', t.accent);
     root.setProperty('--gold-soft', lightenColor(t.accent, 0.84));
     if(t.bgImage){
-      var dim = (100-(t.bgOpacity!==undefined?t.bgOpacity:90))/100;
-      document.body.style.backgroundImage = 'linear-gradient(rgba(255,255,255,'+dim+'), rgba(255,255,255,'+dim+')), url("'+t.bgImage+'")';
+      var dim = (t.bgOpacity!==undefined?t.bgOpacity:90)/100;
+      var tint = hexToRgb(t.bgTintColor || '#ffffff');
+      document.body.style.backgroundImage = 'linear-gradient(rgba('+tint.r+','+tint.g+','+tint.b+','+dim+'), rgba('+tint.r+','+tint.g+','+tint.b+','+dim+')), url("'+t.bgImage+'")';
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundPosition = 'center';
       document.body.style.backgroundAttachment = 'fixed';
@@ -1007,14 +1022,28 @@
     var t = themeSettings || THEME_DEFAULT;
     var pp = document.getElementById('themePrimaryPicker'), pt = document.getElementById('themePrimaryText');
     var ap = document.getElementById('themeAccentPicker'), at = document.getElementById('themeAccentText');
+    var tp = document.getElementById('themeBgTintPicker'), tt = document.getElementById('themeBgTintText');
     var opac = document.getElementById('themeBgOpacity');
     var preview = document.getElementById('themeBgPreview');
+    var previewTint = document.getElementById('themeBgPreviewTint');
+    var previewLabel = document.getElementById('themeBgPreviewLabel');
     if(pp){ pp.value = t.primary; pt.value = t.primary; }
     if(ap){ ap.value = t.accent; at.value = t.accent; }
+    if(tp){ tp.value = t.bgTintColor || '#ffffff'; tt.value = t.bgTintColor || '#ffffff'; }
     if(opac){ opac.value = t.bgOpacity!==undefined ? t.bgOpacity : 90; }
     if(preview){
-      if(t.bgImage){ preview.style.backgroundImage = 'url("'+t.bgImage+'")'; preview.textContent=''; }
-      else { preview.style.backgroundImage='none'; preview.textContent='설정된 배경 이미지가 없어요'; }
+      if(t.bgImage){
+        preview.style.backgroundImage = 'url("'+t.bgImage+'")';
+        previewLabel.style.display = 'none';
+        var dim = (t.bgOpacity!==undefined?t.bgOpacity:90)/100;
+        var tint = hexToRgb(t.bgTintColor || '#ffffff');
+        previewTint.style.background = 'rgba('+tint.r+','+tint.g+','+tint.b+','+dim+')';
+      } else {
+        preview.style.backgroundImage='none';
+        previewLabel.style.display = 'inline';
+        previewLabel.textContent='설정된 배경 이미지가 없어요';
+        previewTint.style.background = 'transparent';
+      }
     }
   }
   function updateThemeField(field, value){
@@ -2711,6 +2740,33 @@
       }
     });
   }
+  var themeBgTintPickerEl = document.getElementById('themeBgTintPicker');
+  var themeBgTintTextEl = document.getElementById('themeBgTintText');
+  if(themeBgTintPickerEl){
+    themeBgTintPickerEl.addEventListener('input', function(){
+      themeBgTintTextEl.value = themeBgTintPickerEl.value;
+      updateThemeField('bgTintColor', themeBgTintPickerEl.value);
+      renderThemeView();
+    });
+  }
+  if(themeBgTintTextEl){
+    themeBgTintTextEl.addEventListener('change', function(){
+      if(/^#[0-9a-fA-F]{6}$/.test(themeBgTintTextEl.value)){
+        themeBgTintPickerEl.value = themeBgTintTextEl.value;
+        updateThemeField('bgTintColor', themeBgTintTextEl.value);
+        renderThemeView();
+      }
+    });
+  }
+  var themeBgTintMainBtnEl = document.getElementById('themeBgTintMainBtn');
+  if(themeBgTintMainBtnEl){
+    themeBgTintMainBtnEl.addEventListener('click', function(){
+      var t = themeSettings || THEME_DEFAULT;
+      updateThemeField('bgTintColor', t.primary);
+      renderThemeView();
+      showToast('배경 색상을 메인 색상에 맞췄어요');
+    });
+  }
   var themeBgUrlApplyBtnEl = document.getElementById('themeBgUrlApplyBtn');
   if(themeBgUrlApplyBtnEl){
     themeBgUrlApplyBtnEl.addEventListener('click', function(){
@@ -2748,6 +2804,7 @@
   if(themeBgOpacityEl){
     themeBgOpacityEl.addEventListener('input', function(){
       updateThemeField('bgOpacity', parseInt(themeBgOpacityEl.value,10));
+      renderThemeView();
     });
   }
   var themeResetBtnEl = document.getElementById('themeResetBtn');
