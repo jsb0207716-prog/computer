@@ -181,10 +181,10 @@
   /* ---------- Lecture room ---------- */
   .lec-layout{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
   @media(max-width:900px){ .lec-layout{grid-template-columns:1fr;} }
-  .subject-chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-  .subject-chip{font-size:12px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:20px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:5px;}
+  .subject-chip-row{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+  .subject-chip{font-size:12px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:20px;padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:5px;width:100%;text-align:left;}
   .subject-chip.active{background:var(--green);border-color:var(--green);color:#fff;}
-  .subject-chip .cdot{width:8px;height:8px;border-radius:50%;}
+  .subject-chip .cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 
   .lec-list{max-height:540px;overflow-y:auto;}
   .lec-item{display:flex;align-items:flex-start;gap:9px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer;}
@@ -202,6 +202,8 @@
   .lec-del:hover{color:var(--red);}
   .lec-nolink-badge{font-size:9.5px;color:var(--gold);background:var(--gold-soft);padding:1px 6px;border-radius:7px;margin-left:4px;}
   .lec-addlink{flex-shrink:0;font-size:10.5px;background:var(--gold-soft);color:var(--gold);border:none;border-radius:999px;padding:4px 8px;cursor:pointer;}
+  .lec-pagination{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 0 2px;}
+  .lec-pagination span{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);}
 
   .player-wrap{position:relative;width:100%;padding-top:56.25%;background:#1c1c1c;border-radius:10px;overflow:hidden;margin-bottom:12px;}
   .player-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
@@ -227,6 +229,8 @@
   .todo-subj-badge{display:inline-block;font-size:10px;font-weight:700;color:#fff;padding:1px 7px;border-radius:8px;margin-left:6px;vertical-align:middle;}
   .todo-postpone{flex-shrink:0;background:var(--surface-soft);border:none;color:var(--ink-soft);cursor:pointer;font-size:10.5px;padding:4px 8px;border-radius:999px;margin-right:4px;}
   .todo-postpone:hover{background:var(--gold-soft);color:var(--gold);}
+  .todo-edit-btn{flex-shrink:0;background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:12px;padding:2px 4px;}
+  .todo-edit-btn:hover{color:var(--green-deep);}
   .dash-todo-clickable{cursor:pointer;border-radius:14px;margin:-6px;padding:6px;transition:background .12s;}
   .dash-todo-clickable:hover{background:var(--surface-soft);}
   .subj-today-badge{font-size:9.5px;color:var(--ink-faint);margin-left:4px;font-family:var(--font-mono);}
@@ -236,6 +240,7 @@
   .streak-box{background:var(--surface-soft);border-radius:10px;padding:14px;margin-bottom:14px;}
   .streak-box .n{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--green-deep);}
   .streak-box .l{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .dash-todo-more{font-size:11.5px;color:var(--ink-faint);text-align:center;padding-top:6px;}
 
   /* ---------- Chat / AI planner ---------- */
   .chat-window{background:var(--surface-soft);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:320px;max-height:460px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
@@ -476,6 +481,7 @@
           <button class="btn btn-sm" id="lecAddBtn">+ 강의 1개 추가</button>
         </div>
         <div class="lec-list" id="lecList"></div>
+        <div class="lec-pagination" id="lecPagination"></div>
       </div>
       <div class="panel panel-pad">
         <div class="player-wrap" id="playerWrap">
@@ -793,6 +799,8 @@
   var sessionViewMode = 'list';
   var sessCalYear = today.getFullYear();
   var sessCalMonth = today.getMonth()+1;
+  var lecCurrentPage = 1;
+  var LEC_PAGE_SIZE = 10;
 
   var lecApiReady = false;
   var lecPlayer = null;
@@ -810,6 +818,11 @@
   function escapeHtml(s){
     if(s===undefined||s===null) return '';
     return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+  }
+  function truncateText(s, maxLen){
+    s = String(s||'');
+    if(s.length<=maxLen) return s;
+    return s.slice(0, maxLen-1).trim() + '…';
   }
   function renderMarkdownInline(s){
     var e = escapeHtml(s||'');
@@ -1120,9 +1133,12 @@
     if(!todayTodos.length){
       dashListEl.innerHTML = '<div class="empty-state" style="padding:14px 0;">오늘 등록된 할 일이 없어요. 눌러서 추가해보세요.</div>';
     } else {
-      dashListEl.innerHTML = todayTodos.map(function(t){
+      var DASH_TODO_LIMIT = 5;
+      var visibleTodos = todayTodos.slice(0, DASH_TODO_LIMIT);
+      var extraCount = todayTodos.length - visibleTodos.length;
+      dashListEl.innerHTML = visibleTodos.map(function(t){
         return '<div class="todo-mini'+(t.done?' done':'')+'">'+(t.done?'✓ ':'· ')+escapeHtml(t.text)+todoSubjectBadgeHtml(t.subjectId)+'</div>';
-      }).join('');
+      }).join('') + (extraCount>0 ? ('<div class="dash-todo-more">+'+extraCount+'개 더 있어요 (눌러서 전체보기)</div>') : '');
     }
 
     renderDdayTicket();
@@ -1141,6 +1157,8 @@
     return '<h3>'+escapeHtml(s.name)+' · 학습 목표</h3>'
       + '<div class="save-hint" style="margin-bottom:12px;line-height:1.7;">여기에 이 과목에서 해야 할 일들을 목표로 등록해두면(예: "강의 23개 듣기", "모의고사 4개 풀기"), 전체 진도율이 목표 달성률의 평균으로 계산돼요. 투두리스트나 강의를 완료 체크하면 AI가 관련된 목표를 찾아서 자동으로 진도를 올려줘요. 퍼센트는 언제든 직접 수정할 수 있어요.</div>'
       + '<div class="mini-stat" style="margin-bottom:14px;"><div class="n">'+pct+'%</div><div class="l">이 과목 전체 진도율'+(s.studyPlan.length?'':' (등록된 목표 없음 · 강의 시청 기준)')+'</div></div>'
+      + (s.studyPlan.length ? ('<div class="save-hint" style="margin-bottom:10px;line-height:1.7;">목표를 새로 등록했거나 진도율이 예전 완료 기록을 반영 못하고 있다면, 아래 버튼으로 지금까지 완료한 할 일들을 처음부터 다시 검토해서 진도율에 반영할 수 있어요. (기존 목표 진도율은 0%로 초기화된 뒤 다시 계산돼요)</div>'
+          + '<button class="btn btn-sm" id="planRecalcBtn" style="width:100%;margin-bottom:14px;">↺ 완료된 할일 전체 다시 반영하기</button>') : '')
       + '<div id="planGoalsList">'+renderPlanGoalsListHtml(s)+'</div>'
       + '<div class="todo-add-row"><input type="text" id="planGoalInput" placeholder="예: 강의 23개 듣기"><button class="btn btn-primary btn-sm" id="planGoalAddBtn">추가</button></div>'
       + '<div class="modal-close-row"><button class="btn btn-primary" id="modalCloseBtn">완료</button></div>';
@@ -1200,8 +1218,64 @@
         refresh();
       });
     }
+    var recalcBtn = document.getElementById('planRecalcBtn');
+    if(recalcBtn){
+      recalcBtn.addEventListener('click', function(){
+        recalcSubjectGoalsFromHistory(subjId, recalcBtn);
+      });
+    }
     var closeBtn = document.getElementById('modalCloseBtn');
     if(closeBtn) closeBtn.addEventListener('click', closeModal);
+  }
+
+  /* 이 과목에서 지금까지 완료 처리된 모든 할일(강의 시청완료로 자동생성된 할일 포함)을
+     시간순으로 다시 훑으면서 목표 진도율을 처음부터 재계산함 */
+  async function recalcSubjectGoalsFromHistory(subjectId, btnEl){
+    var s = subjectById(subjectId);
+    if(!s || !s.studyPlan || !s.studyPlan.length) return;
+    if(btnEl){ btnEl.disabled = true; btnEl.textContent = '다시 계산하는 중...'; }
+    s.studyPlan.forEach(function(g){ g.progress = 0; });
+    saveSubjects();
+
+    var doneItems = todos.filter(function(t){ return t.subjectId===subjectId && t.done; })
+      .slice()
+      .sort(function(a,b){ return (a.createdAt||'').localeCompare(b.createdAt||''); });
+
+    for(var i=0;i<doneItems.length;i++){
+      try{ await maybeUpdateGoalsFromCompletionSync(subjectId, doneItems[i].text); }
+      catch(e){ /* 개별 항목 실패는 무시하고 계속 진행 */ }
+    }
+
+    if(btnEl){ btnEl.disabled = false; btnEl.textContent = '↺ 완료된 할일 전체 다시 반영하기'; }
+    var refreshedModal = document.getElementById('modalBody');
+    if(refreshedModal){
+      refreshedModal.innerHTML = renderSubjectPlanBody(subjectById(subjectId));
+      bindSubjectPlanEvents(subjectId);
+    }
+    renderDashboard();
+    showToast('완료된 할일 '+doneItems.length+'개를 다시 반영했어요');
+  }
+  /* maybeUpdateGoalsFromCompletion과 로직은 같지만, 재계산 루프에서 순서대로 기다리며 실행하기 위한 버전 */
+  async function maybeUpdateGoalsFromCompletionSync(subjectId, text){
+    var s = subjectById(subjectId);
+    if(!s || !s.studyPlan || !s.studyPlan.length || !text) return;
+    var goalsDesc = s.studyPlan.map(function(g){ return g.id+': '+g.text+' (현재 '+(g.progress||0)+'%)'; }).join('\n');
+    var sys = '너는 학습 진도 관리 도우미야. 사용자가 방금 할일을 하나 완료했어. 아래 목표 목록 중 이 할일과 실제로 관련된 목표가 있으면, 그 목표 전체 분량 대비 이번 할일 하나가 차지하는 비중을 상식적으로 추정해서 진도를 몇 % 올릴지 알려줘.\n\n'
+      + '목표 목록:\n' + goalsDesc + '\n\n'
+      + '다른 설명 없이 반드시 아래 JSON 배열 형식으로만 답해. 관련된 목표가 없으면 빈 배열 []만 출력해.\n'
+      + '[{"goalId":"목표id","increment":숫자}]';
+    var reply = await callAI(sys, [{role:'user', content:'방금 완료한 할일: "'+text+'"'}]);
+    var m = reply.match(/\[[\s\S]*\]/);
+    if(!m) return;
+    var arr = JSON.parse(m[0]);
+    if(!Array.isArray(arr) || !arr.length) return;
+    arr.forEach(function(item){
+      var g = s.studyPlan.find(function(x){return x.id===item.goalId;});
+      if(g && typeof item.increment==='number' && item.increment>0){
+        g.progress = Math.max(0, Math.min(100, (g.progress||0) + item.increment));
+      }
+    });
+    saveSubjects();
   }
 
   /* 할일/강의가 완료 처리될 때, 관련 과목에 학습목표가 있으면 AI가 관련도를 판단해서 진도율을 자동으로 올려줌 */
@@ -1319,7 +1393,7 @@
     }).join('');
     row.innerHTML = html;
     row.querySelectorAll('[data-filter]').forEach(function(btn){
-      btn.addEventListener('click', function(){ activeSubjectFilter = btn.dataset.filter; renderLectureRoom(); });
+      btn.addEventListener('click', function(){ activeSubjectFilter = btn.dataset.filter; lecCurrentPage = 1; renderLectureRoom(); });
     });
 
     var swSel = document.getElementById('swSubjectSelect');
@@ -1330,18 +1404,26 @@
 
   function renderLectureList(){
     var listEl = document.getElementById('lecList');
+    var pagEl = document.getElementById('lecPagination');
     var list = lectures.filter(function(l){ return activeSubjectFilter==='all' || l.subjectId===activeSubjectFilter; });
     list.sort(function(a,b){ return (a.order||0)-(b.order||0); });
     if(!list.length){
       listEl.innerHTML = '<div class="empty-state">등록된 강의가 없어요. "재생목록 자동 가져오기"로 한번에 등록해보세요.</div>';
+      pagEl.innerHTML = '';
       return;
     }
-    listEl.innerHTML = list.map(function(l, idx){
+    var totalPages = Math.max(1, Math.ceil(list.length / LEC_PAGE_SIZE));
+    if(lecCurrentPage > totalPages) lecCurrentPage = totalPages;
+    if(lecCurrentPage < 1) lecCurrentPage = 1;
+    var startIdx = (lecCurrentPage-1) * LEC_PAGE_SIZE;
+    var pageList = list.slice(startIdx, startIdx + LEC_PAGE_SIZE);
+
+    listEl.innerHTML = pageList.map(function(l, idx){
       var s = subjectById(l.subjectId);
       var noLink = !l.videoId;
       return '<div class="lec-item'+(playingLectureId===l.id?' playing':'')+(noLink?' lec-item-nolink':'')+'" data-lec-id="'+l.id+'">'
         + '<input type="checkbox" class="lec-check" data-toggle-lec="'+l.id+'"'+(l.done?' checked':'')+'>'
-        + '<span style="flex:0 0 auto;font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);font-weight:700;padding-top:2px;">'+(idx+1)+'.</span>'
+        + '<span style="flex:0 0 auto;font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);font-weight:700;padding-top:2px;">'+(startIdx+idx+1)+'.</span>'
         + '<div class="lec-title'+(l.done?' done-text':'')+'" title="'+escapeHtml(l.title)+'">'+escapeHtml(l.title)+(s?(' <span style="color:var(--ink-faint);font-size:11px;">· '+escapeHtml(s.name.split(' · ')[0])+'</span>'):'')
         + (noLink ? ' <span class="lec-nolink-badge">링크 필요</span>' : '')
         + '</div>'
@@ -1350,6 +1432,18 @@
         + '<button class="lec-del" data-del-lec="'+l.id+'">✕</button>'
         + '</div>';
     }).join('');
+
+    if(totalPages > 1){
+      pagEl.innerHTML = '<button class="btn btn-sm" id="lecPagePrev"'+(lecCurrentPage<=1?' disabled':'')+'>‹ 이전</button>'
+        + '<span>'+lecCurrentPage+' / '+totalPages+'</span>'
+        + '<button class="btn btn-sm" id="lecPageNext"'+(lecCurrentPage>=totalPages?' disabled':'')+'>다음 ›</button>';
+      var prevBtn = document.getElementById('lecPagePrev');
+      var nextBtn = document.getElementById('lecPageNext');
+      if(prevBtn) prevBtn.addEventListener('click', function(){ if(lecCurrentPage>1){ lecCurrentPage--; renderLectureList(); } });
+      if(nextBtn) nextBtn.addEventListener('click', function(){ if(lecCurrentPage<totalPages){ lecCurrentPage++; renderLectureList(); } });
+    } else {
+      pagEl.innerHTML = '';
+    }
 
     listEl.querySelectorAll('.lec-item').forEach(function(item){
       item.addEventListener('click', function(e){
@@ -1424,9 +1518,10 @@
     });
   }
 
+  var LECTURE_TODO_TITLE_MAXLEN = 22;
   function buildLectureTodoText(l){
     var s = subjectById(l.subjectId);
-    return (s?(s.name.split(' · ')[0]+' · '):'')+l.title;
+    return (s?(s.name.split(' · ')[0]+' · '):'')+truncateText(l.title, LECTURE_TODO_TITLE_MAXLEN);
   }
   /* 강의 완료 상태가 바뀔 때마다 연결된 투두를 만들거나 상태를 맞춰줌 (양방향 연동) */
   function syncLectureTodo(l){
@@ -2094,8 +2189,30 @@
     return '<div class="todo-item'+(t.done?' done':'')+'" data-id="'+t.id+'">'
       + '<input type="checkbox" class="todo-check" data-toggle-todo="'+t.id+'"'+(t.done?' checked':'')+'>'
       + '<div class="todo-text">'+escapeHtml(t.text)+todoSubjectBadgeHtml(t.subjectId)+'</div>'
+      + '<button class="todo-edit-btn" data-edit-todo="'+t.id+'" title="수정">✎</button>'
       + (!t.done ? '<button class="todo-postpone" data-postpone-todo="'+t.id+'" title="내일로 미루기">내일로</button>' : '')
       + '<button class="todo-del" data-del-todo="'+t.id+'">✕</button></div>';
+  }
+  function openEditTodoModal(todoId, afterChange){
+    var t = todos.find(function(x){return x.id===todoId;});
+    if(!t) return;
+    openModal(
+      '<h3>할 일 수정</h3>'
+      + '<div class="field"><label>내용</label><input type="text" id="editTodoTextInput" value="'+escapeHtml(t.text)+'"></div>'
+      + '<div class="field"><label>과목 카테고리</label><select id="editTodoSubjectSelect">'+subjectOptionsHtml(t.subjectId)+'</select></div>'
+      + '<div class="modal-close-row"><button class="btn" id="modalCancel">취소</button><button class="btn btn-primary" id="modalSave">저장</button></div>'
+    );
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    document.getElementById('modalSave').addEventListener('click', function(){
+      var newText = document.getElementById('editTodoTextInput').value.trim();
+      if(!newText){ showToast('내용을 입력해주세요'); return; }
+      t.text = newText;
+      t.subjectId = document.getElementById('editTodoSubjectSelect').value;
+      saveTodos();
+      closeModal();
+      if(afterChange) afterChange();
+      showToast('할 일을 수정했어요');
+    });
   }
   function bindTodoItemEvents(container, afterChange){
     container.querySelectorAll('[data-toggle-todo]').forEach(function(chk){
@@ -2116,6 +2233,11 @@
           if(chk.checked){ maybeUpdateGoalsFromCompletion(t.subjectId, t.text); }
           afterChange();
         }
+      });
+    });
+    container.querySelectorAll('[data-edit-todo]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        openEditTodoModal(btn.dataset.editTodo, afterChange);
       });
     });
     container.querySelectorAll('[data-postpone-todo]').forEach(function(btn){
