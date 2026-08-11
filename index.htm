@@ -193,11 +193,15 @@
   .lec-check{flex-shrink:0;width:18px;height:18px;margin-top:2px;border-radius:5px;border:1.5px solid var(--ink-faint);background:#fff;cursor:pointer;position:relative;appearance:none;-webkit-appearance:none;}
   .lec-check:checked{background:var(--green);border-color:var(--green);}
   .lec-check:checked::after{content:'✓';position:absolute;top:-2px;left:2px;color:#fff;font-size:12px;font-weight:700;}
-  .lec-title{flex:1;font-size:13px;line-height:1.5;word-break:keep-all;}
+  .lec-title{flex:1;min-width:0;font-size:13px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .lec-item.playing .lec-title{font-weight:700;color:var(--green-deep);}
   .lec-title.done-text{color:var(--ink-faint);text-decoration:line-through;}
+  .lec-edit{flex-shrink:0;background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:12px;padding:2px 4px;}
+  .lec-edit:hover{color:var(--green-deep);}
   .lec-del{flex-shrink:0;background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:12px;}
   .lec-del:hover{color:var(--red);}
+  .lec-nolink-badge{font-size:9.5px;color:var(--gold);background:var(--gold-soft);padding:1px 6px;border-radius:7px;margin-left:4px;}
+  .lec-addlink{flex-shrink:0;font-size:10.5px;background:var(--gold-soft);color:var(--gold);border:none;border-radius:999px;padding:4px 8px;cursor:pointer;}
 
   .player-wrap{position:relative;width:100%;padding-top:56.25%;background:#1c1c1c;border-radius:10px;overflow:hidden;margin-bottom:12px;}
   .player-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
@@ -416,7 +420,7 @@
         </div>
       </div>
       <div class="panel panel-pad">
-        <div class="section-title">과목별 진도율</div>
+        <div class="section-title">과목별 진도율 <span style="font-size:11px;color:var(--ink-faint);font-weight:400;">(눌러서 학습목표 설정)</span></div>
         <div id="subjectProgressList"></div>
         <div style="height:1px;background:var(--line);margin:18px 0;"></div>
         <div class="dash-todo-clickable" id="dashTodoClickWrap">
@@ -441,7 +445,7 @@
             </div>
           </div>
           <div class="sess-mini-log">
-            <div class="sess-mini-log-title">공부 세션</div>
+            <div class="sess-mini-log-title">오늘 공부 세션</div>
             <div class="session-log-scroll" id="sessionLog"></div>
           </div>
         </div>
@@ -469,9 +473,7 @@
         <div class="subject-chip-row" id="subjectChipRow"></div>
         <div class="btn-row" style="margin-bottom:12px;">
           <button class="btn btn-primary btn-sm" id="lecImportBtn">재생목록 자동 가져오기</button>
-          <button class="btn btn-sm" id="lecTitleOnlyBtn">제목만 빠르게 등록</button>
           <button class="btn btn-sm" id="lecAddBtn">+ 강의 1개 추가</button>
-          <button class="btn btn-sm" id="lecBulkAddBtn">＋ 텍스트로 여러 개 추가</button>
         </div>
         <div class="lec-list" id="lecList"></div>
       </div>
@@ -483,6 +485,12 @@
         <div class="player-meta" id="playerMeta"></div>
         <div class="btn-row" id="playerActions" style="display:none;">
           <button class="btn btn-primary btn-sm" id="playerMarkDoneBtn">✓ 시청완료로 표시</button>
+        </div>
+        <div id="playerNotesWrap" style="display:none;margin-top:16px;">
+          <div style="height:1px;background:var(--line);margin:4px 0 14px;"></div>
+          <label for="playerNotesArea">📝 강의 메모</label>
+          <textarea id="playerNotesArea" placeholder="강의 들으면서 메모를 남겨보세요. 자동 저장돼요." style="min-height:140px;"></textarea>
+          <div class="save-hint" id="playerNotesSavedHint">&nbsp;</div>
         </div>
       </div>
     </div>
@@ -798,7 +806,7 @@
   function uid(p){ return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
   function pad2(n){ return n<10 ? '0'+n : ''+n; }
   function fmtDate(y,m,d){ return y+'-'+pad2(m)+'-'+pad2(d); }
-  function todayStr(){ return fmtDate(today.getFullYear(), today.getMonth()+1, today.getDate()); }
+  function todayStr(){ var d=new Date(); return fmtDate(d.getFullYear(), d.getMonth()+1, d.getDate()); }
   function escapeHtml(s){
     if(s===undefined||s===null) return '';
     return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
@@ -1056,6 +1064,14 @@
   }
 
   /* ================= DASHBOARD ================= */
+  function subjectProgressPct(s){
+    if(s.studyPlan && s.studyPlan.length){
+      var sum = s.studyPlan.reduce(function(a,g){return a+(g.progress||0);},0);
+      return Math.round(sum / s.studyPlan.length);
+    }
+    var subLec = lectures.filter(function(l){return l.subjectId===s.id;});
+    return subLec.length ? Math.round(subLec.filter(function(l){return l.done;}).length/subLec.length*100) : 0;
+  }
   function renderDashboard(){
     var totalLec = lectures.length;
     var doneLec = lectures.filter(function(l){return l.done;}).length;
@@ -1083,17 +1099,21 @@
       spEl.innerHTML = subjects.map(function(s){
         var subLec = lectures.filter(function(l){return l.subjectId===s.id;});
         var subDone = subLec.filter(function(l){return l.done;}).length;
-        var subPct = subLec.length ? Math.round(subDone/subLec.length*100) : 0;
+        var subPct = subjectProgressPct(s);
         var subTodayTodos = todayTodos.filter(function(t){return t.subjectId===s.id;});
         var subTodayDone = subTodayTodos.filter(function(t){return t.done;}).length;
         var todayBadge = subTodayTodos.length ? ('<span class="subj-today-badge">오늘 '+subTodayDone+'/'+subTodayTodos.length+'</span>') : '';
-        return '<div class="subject-progress-row">'
+        var planBadge = (s.studyPlan && s.studyPlan.length) ? ' <span class="subj-today-badge" style="color:var(--gold);">목표'+s.studyPlan.length+'개</span>' : '';
+        return '<div class="subject-progress-row subject-progress-clickable" data-subj-id="'+s.id+'" style="cursor:pointer;">'
           + '<span class="subject-dot" style="background:'+s.color+';"></span>'
-          + '<span class="subject-progress-name">'+escapeHtml(s.name)+todayBadge+'</span>'
+          + '<span class="subject-progress-name">'+escapeHtml(s.name)+todayBadge+planBadge+'</span>'
           + '<span class="subject-progress-bar"><span class="subject-progress-fill" style="width:'+subPct+'%;background:'+s.color+';"></span></span>'
-          + '<span class="subject-progress-pct">'+subDone+'/'+subLec.length+'</span>'
+          + '<span class="subject-progress-pct">'+(s.studyPlan && s.studyPlan.length ? (subPct+'%') : (subDone+'/'+subLec.length))+'</span>'
           + '</div>';
       }).join('');
+      spEl.querySelectorAll('[data-subj-id]').forEach(function(row){
+        row.addEventListener('click', function(){ openSubjectPlanModal(row.dataset.subjId); });
+      });
     }
 
     var dashListEl = document.getElementById('dashTodoList');
@@ -1106,6 +1126,113 @@
     }
 
     renderDdayTicket();
+  }
+
+  /* ================= SUBJECT STUDY PLAN (목표 기반 진도율) ================= */
+  function openSubjectPlanModal(subjId){
+    var s = subjectById(subjId);
+    if(!s) return;
+    if(!s.studyPlan) s.studyPlan = [];
+    openModal(renderSubjectPlanBody(s), true);
+    bindSubjectPlanEvents(subjId);
+  }
+  function renderSubjectPlanBody(s){
+    var pct = subjectProgressPct(s);
+    return '<h3>'+escapeHtml(s.name)+' · 학습 목표</h3>'
+      + '<div class="save-hint" style="margin-bottom:12px;line-height:1.7;">여기에 이 과목에서 해야 할 일들을 목표로 등록해두면(예: "강의 23개 듣기", "모의고사 4개 풀기"), 전체 진도율이 목표 달성률의 평균으로 계산돼요. 투두리스트나 강의를 완료 체크하면 AI가 관련된 목표를 찾아서 자동으로 진도를 올려줘요. 퍼센트는 언제든 직접 수정할 수 있어요.</div>'
+      + '<div class="mini-stat" style="margin-bottom:14px;"><div class="n">'+pct+'%</div><div class="l">이 과목 전체 진도율'+(s.studyPlan.length?'':' (등록된 목표 없음 · 강의 시청 기준)')+'</div></div>'
+      + '<div id="planGoalsList">'+renderPlanGoalsListHtml(s)+'</div>'
+      + '<div class="todo-add-row"><input type="text" id="planGoalInput" placeholder="예: 강의 23개 듣기"><button class="btn btn-primary btn-sm" id="planGoalAddBtn">추가</button></div>'
+      + '<div class="modal-close-row"><button class="btn btn-primary" id="modalCloseBtn">완료</button></div>';
+  }
+  function renderPlanGoalsListHtml(s){
+    if(!s.studyPlan.length){
+      return '<div class="empty-state" style="padding:16px 0;">아직 등록된 목표가 없어요.</div>';
+    }
+    return s.studyPlan.map(function(g){
+      return '<div class="field-row" style="align-items:center;margin-bottom:10px;" data-goal-row="'+g.id+'">'
+        + '<div style="flex:1;min-width:140px;">'
+        + '<div style="font-size:13px;font-weight:600;margin-bottom:5px;">'+escapeHtml(g.text)+'</div>'
+        + '<div class="subject-progress-bar" style="height:8px;"><span class="subject-progress-fill" style="width:'+(g.progress||0)+'%;background:'+s.color+';"></span></div>'
+        + '</div>'
+        + '<input type="number" min="0" max="100" value="'+(g.progress||0)+'" data-goal-progress="'+g.id+'" style="width:64px;flex:0 0 64px;">'
+        + '<button class="btn btn-danger btn-sm" data-goal-del="'+g.id+'" style="flex:0 0 auto;">삭제</button>'
+        + '</div>';
+    }).join('');
+  }
+  function bindSubjectPlanEvents(subjId){
+    var wrap = document.getElementById('modalBody');
+    function refresh(){
+      var s = subjectById(subjId);
+      document.getElementById('modalBody').innerHTML = renderSubjectPlanBody(s);
+      bindSubjectPlanEvents(subjId);
+      renderDashboard();
+    }
+    wrap.querySelectorAll('[data-goal-progress]').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        var s = subjectById(subjId);
+        var g = s.studyPlan.find(function(x){return x.id===inp.dataset.goalProgress;});
+        if(g){
+          g.progress = Math.max(0, Math.min(100, parseInt(inp.value,10)||0));
+          saveSubjects();
+          refresh();
+        }
+      });
+    });
+    wrap.querySelectorAll('[data-goal-del]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var s = subjectById(subjId);
+        s.studyPlan = s.studyPlan.filter(function(x){return x.id!==btn.dataset.goalDel;});
+        saveSubjects();
+        refresh();
+      });
+    });
+    var addBtn = document.getElementById('planGoalAddBtn');
+    if(addBtn){
+      addBtn.addEventListener('click', function(){
+        var input = document.getElementById('planGoalInput');
+        var text = input.value.trim();
+        if(!text) return;
+        var s = subjectById(subjId);
+        if(!s.studyPlan) s.studyPlan = [];
+        s.studyPlan.push({id:uid('goal'), text:text, progress:0});
+        saveSubjects();
+        refresh();
+      });
+    }
+    var closeBtn = document.getElementById('modalCloseBtn');
+    if(closeBtn) closeBtn.addEventListener('click', closeModal);
+  }
+
+  /* 할일/강의가 완료 처리될 때, 관련 과목에 학습목표가 있으면 AI가 관련도를 판단해서 진도율을 자동으로 올려줌 */
+  async function maybeUpdateGoalsFromCompletion(subjectId, text){
+    var s = subjectById(subjectId);
+    if(!s || !s.studyPlan || !s.studyPlan.length || !text) return;
+    var goalsDesc = s.studyPlan.map(function(g){ return g.id+': '+g.text+' (현재 '+(g.progress||0)+'%)'; }).join('\n');
+    var sys = '너는 학습 진도 관리 도우미야. 사용자가 방금 할일을 하나 완료했어. 아래 목표 목록 중 이 할일과 실제로 관련된 목표가 있으면, 그 목표 전체 분량 대비 이번 할일 하나가 차지하는 비중을 상식적으로 추정해서 진도를 몇 % 올릴지 알려줘.\n\n'
+      + '목표 목록:\n' + goalsDesc + '\n\n'
+      + '다른 설명 없이 반드시 아래 JSON 배열 형식으로만 답해. 관련된 목표가 없으면 빈 배열 []만 출력해.\n'
+      + '[{"goalId":"목표id","increment":숫자}]';
+    try{
+      var reply = await callAI(sys, [{role:'user', content:'방금 완료한 할일: "'+text+'"'}]);
+      var m = reply.match(/\[[\s\S]*\]/);
+      if(!m) return;
+      var arr = JSON.parse(m[0]);
+      if(!Array.isArray(arr) || !arr.length) return;
+      var changed = false;
+      arr.forEach(function(item){
+        var g = s.studyPlan.find(function(x){return x.id===item.goalId;});
+        if(g && typeof item.increment==='number' && item.increment>0){
+          g.progress = Math.max(0, Math.min(100, (g.progress||0) + item.increment));
+          changed = true;
+        }
+      });
+      if(changed){
+        saveSubjects();
+        renderDashboard();
+        showToast('AI가 "'+s.name.split(' · ')[0]+'" 진도를 반영했어요');
+      }
+    }catch(e){ /* 조용히 무시: 채팅 프록시가 없거나 실패해도 할일 완료 자체는 정상 동작해야 함 */ }
   }
 
   function daysUntil(dateStr){
@@ -1209,22 +1336,24 @@
       listEl.innerHTML = '<div class="empty-state">등록된 강의가 없어요. "재생목록 자동 가져오기"로 한번에 등록해보세요.</div>';
       return;
     }
-    listEl.innerHTML = list.map(function(l){
+    listEl.innerHTML = list.map(function(l, idx){
       var s = subjectById(l.subjectId);
       var noLink = !l.videoId;
       return '<div class="lec-item'+(playingLectureId===l.id?' playing':'')+(noLink?' lec-item-nolink':'')+'" data-lec-id="'+l.id+'">'
         + '<input type="checkbox" class="lec-check" data-toggle-lec="'+l.id+'"'+(l.done?' checked':'')+'>'
-        + '<div class="lec-title'+(l.done?' done-text':'')+'">'+escapeHtml(l.title)+(s?(' <span style="color:var(--ink-faint);font-size:11px;">· '+escapeHtml(s.name.split(' · ')[0])+'</span>'):'')
+        + '<span style="flex:0 0 auto;font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);font-weight:700;padding-top:2px;">'+(idx+1)+'.</span>'
+        + '<div class="lec-title'+(l.done?' done-text':'')+'" title="'+escapeHtml(l.title)+'">'+escapeHtml(l.title)+(s?(' <span style="color:var(--ink-faint);font-size:11px;">· '+escapeHtml(s.name.split(' · ')[0])+'</span>'):'')
         + (noLink ? ' <span class="lec-nolink-badge">링크 필요</span>' : '')
         + '</div>'
         + (noLink ? ('<button class="lec-addlink" data-addlink-lec="'+l.id+'">링크 추가</button>') : '')
+        + '<button class="lec-edit" data-edit-lec="'+l.id+'" title="이름 수정">✎</button>'
         + '<button class="lec-del" data-del-lec="'+l.id+'">✕</button>'
         + '</div>';
     }).join('');
 
     listEl.querySelectorAll('.lec-item').forEach(function(item){
       item.addEventListener('click', function(e){
-        if(e.target.closest('[data-toggle-lec]') || e.target.closest('[data-del-lec]') || e.target.closest('[data-addlink-lec]')) return;
+        if(e.target.closest('[data-toggle-lec]') || e.target.closest('[data-del-lec]') || e.target.closest('[data-addlink-lec]') || e.target.closest('[data-edit-lec]')) return;
         playLecture(item.dataset.lecId);
       });
     });
@@ -1232,6 +1361,12 @@
       btn.addEventListener('click', function(e){
         e.stopPropagation();
         openAddLinkModal(btn.dataset.addlinkLec);
+      });
+    });
+    listEl.querySelectorAll('[data-edit-lec]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        openEditLectureTitleModal(btn.dataset.editLec);
       });
     });
     listEl.querySelectorAll('[data-toggle-lec]').forEach(function(chk){
@@ -1243,6 +1378,7 @@
           l.watchedAt = chk.checked ? new Date().toISOString() : null;
           saveLectures();
           syncLectureTodo(l);
+          if(chk.checked){ maybeUpdateGoalsFromCompletion(l.subjectId, buildLectureTodoText(l)); }
           renderLectureRoom();
           if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
           if(playingLectureId===l.id) updatePlayerActionButtons(l);
@@ -1262,6 +1398,29 @@
         renderLectureRoom();
         if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
       });
+    });
+  }
+
+  function openEditLectureTitleModal(lecId){
+    var l = lectures.find(function(x){return x.id===lecId;});
+    if(!l) return;
+    openModal(
+      '<h3>강의 이름 수정</h3>'
+      + '<div class="field"><label>강의 제목</label><input type="text" id="editLecTitleInput" value="'+escapeHtml(l.title)+'"></div>'
+      + '<div class="modal-close-row"><button class="btn" id="modalCancel">취소</button><button class="btn btn-primary" id="modalSave">저장</button></div>'
+    );
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    document.getElementById('modalSave').addEventListener('click', function(){
+      var newTitle = document.getElementById('editLecTitleInput').value.trim();
+      if(!newTitle){ showToast('제목을 입력해주세요'); return; }
+      l.title = newTitle;
+      saveLectures();
+      var t = todos.find(function(x){return x.lectureId===l.id;});
+      if(t){ t.text = buildLectureTodoText(l); saveTodos(); }
+      closeModal();
+      renderLectureRoom();
+      if(playingLectureId===l.id) document.getElementById('playerTitle').textContent = l.title;
+      showToast('강의 이름을 수정했어요');
     });
   }
 
@@ -1297,6 +1456,7 @@
     l.watchedAt = new Date().toISOString();
     saveLectures();
     syncLectureTodo(l);
+    maybeUpdateGoalsFromCompletion(l.subjectId, buildLectureTodoText(l));
     renderLectureRoom();
     if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
     updatePlayerActionButtons(l);
@@ -1312,6 +1472,17 @@
       document.getElementById('playerWrap').innerHTML = '<div id="lecPlayerDiv"></div>';
     }
   }
+  var lecPlayerErrorShownFor = null;
+  function showLecturePlayError(l){
+    if(lecPlayerErrorShownFor === l.id) return;
+    lecPlayerErrorShownFor = l.id;
+    document.getElementById('playerWrap').innerHTML =
+      '<div class="player-empty">'
+      + '⚠ 이 영상은 이 페이지 안에서 재생할 수 없어요 (임베드 제한/삭제/비공개일 수 있어요)<br>'
+      + '<a href="https://www.youtube.com/watch?v='+encodeURIComponent(l.videoId)+'" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;margin-top:4px;">유튜브에서 바로 보기 ↗</a>'
+      + '</div>';
+    showToast('이 강의는 임베드 재생이 제한되어 있어요. 유튜브에서 열어보세요.');
+  }
   function initLecPlayer(videoId){
     ensureLecturePlayerContainer();
     lecPlayer = new YT.Player('lecPlayerDiv', {
@@ -1321,14 +1492,19 @@
       events:{
         onStateChange:function(e){
           if(e.data === YT.PlayerState.ENDED){ autoCompleteLecture(playingLectureId); }
+        },
+        onError:function(e){
+          var l = lectures.find(function(x){return x.id===playingLectureId;});
+          if(l) showLecturePlayError(l);
         }
       }
     });
     lecPendingVideoId = null;
   }
   function loadLectureVideo(videoId){
+    lecPlayerErrorShownFor = null;
     if(lecApiReady){
-      if(lecPlayer && lecPlayer.loadVideoById){
+      if(lecPlayer && lecPlayer.loadVideoById && document.getElementById('lecPlayerDiv')){
         ensureLecturePlayerContainer();
         lecPlayer.loadVideoById(videoId);
       } else {
@@ -1354,12 +1530,33 @@
       l.watchedAt = l.done ? new Date().toISOString() : null;
       saveLectures();
       syncLectureTodo(l);
+      if(l.done){ maybeUpdateGoalsFromCompletion(l.subjectId, buildLectureTodoText(l)); }
       renderLectureRoom();
       if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
       updatePlayerActionButtons(l);
     };
     ensureLectureTodo(l);
     renderLectureList();
+    showLectureNotes(l);
+  }
+
+  var notesSaveTimer = null;
+  function showLectureNotes(l){
+    var wrap = document.getElementById('playerNotesWrap');
+    var area = document.getElementById('playerNotesArea');
+    wrap.style.display = 'block';
+    area.value = l.notes || '';
+    document.getElementById('playerNotesSavedHint').textContent = '\u00a0';
+    area.oninput = function(){
+      l.notes = area.value;
+      document.getElementById('playerNotesSavedHint').textContent = '저장 중...';
+      clearTimeout(notesSaveTimer);
+      notesSaveTimer = setTimeout(function(){
+        saveLectures();
+        var hint = document.getElementById('playerNotesSavedHint');
+        if(hint) hint.textContent = '저장됨';
+      }, 500);
+    };
   }
 
   function openAddLinkModal(lecId){
@@ -1445,7 +1642,7 @@
         var input = document.getElementById('newSubjName');
         var name = input.value.trim();
         if(!name) return;
-        subjects.push({id:uid('s'), name:name, color:SUBJECT_COLORS[subjects.length % SUBJECT_COLORS.length]});
+        subjects.push({id:uid('s'), name:name, color:SUBJECT_COLORS[subjects.length % SUBJECT_COLORS.length], studyPlan:[]});
         saveSubjects();
         document.getElementById('modalBody').innerHTML = renderSubjectManageBody();
         bindSubjectManageEvents();
@@ -1471,7 +1668,7 @@
       var title = document.getElementById('lfTitle').value.trim();
       if(!vid){ showToast('유튜브 링크를 확인해주세요'); return; }
       if(!title){ showToast('강의 제목을 입력해주세요'); return; }
-      lectures.push({id:uid('lec'), subjectId:document.getElementById('lfSubject').value, title:title, videoId:vid, order:lectures.length, done:false, watchedAt:null});
+      lectures.push({id:uid('lec'), subjectId:document.getElementById('lfSubject').value, title:title, videoId:vid, order:lectures.length, done:false, watchedAt:null, notes:''});
       saveLectures();
       closeModal();
       renderLectureRoom();
@@ -1479,73 +1676,7 @@
     });
   });
 
-  document.getElementById('lecBulkAddBtn').addEventListener('click', function(){
-    openModal(
-      '<h3>여러 강의 한번에 추가</h3>'
-      + '<div class="save-hint" style="margin-bottom:10px;">한 줄에 강의 하나씩, <b>제목 | 유튜브링크</b> 형식으로 붙여넣으면 아래 선택한 과목으로 한번에 등록돼요.</div>'
-      + '<div class="field"><label>과목</label><select id="bulkSubject">'+subjects.map(function(s){return '<option value="'+s.id+'">'+escapeHtml(s.name)+'</option>';}).join('')+'</select></div>'
-      + '<div class="field"><label>강의 목록</label><textarea id="bulkArea" style="min-height:180px;font-family:var(--font-mono);font-size:12.5px;" placeholder="1강. 컴퓨터 시스템 개요 | https://youtu.be/xxxxx&#10;2강. 자료의 표현 | https://youtu.be/yyyyy"></textarea></div>'
-      + '<div class="modal-close-row"><button class="btn" id="modalCancel">취소</button><button class="btn btn-primary" id="modalSave">일괄 추가</button></div>'
-    );
-    document.getElementById('modalCancel').addEventListener('click', closeModal);
-    document.getElementById('modalSave').addEventListener('click', function(){
-      var subjId = document.getElementById('bulkSubject').value;
-      var lines = document.getElementById('bulkArea').value.split('\n').map(function(l){return l.trim();}).filter(Boolean);
-      var added = 0;
-      lines.forEach(function(line){
-        var parts = line.split('|');
-        if(parts.length < 2) return;
-        var title = parts[0].trim();
-        var vid = parseYoutubeId(parts.slice(1).join('|').trim());
-        if(!title || !vid) return;
-        lectures.push({id:uid('lec'), subjectId:subjId, title:title, videoId:vid, order:lectures.length, done:false, watchedAt:null});
-        added++;
-      });
-      saveLectures();
-      closeModal();
-      renderLectureRoom();
-      showToast(added+'개 강의를 추가했어요');
-    });
-  });
-
   /* ================= PLAYLIST AUTO-IMPORT (YouTube Data API v3) ================= */
-  function detectSubjectIdFromTitle(title){
-    var t = title || '';
-    var patterns = [
-      {re:/1\s*과목/, key:'1과목'},
-      {re:/2\s*과목/, key:'2과목'},
-      {re:/3\s*과목/, key:'3과목'}
-    ];
-    for(var i=0;i<patterns.length;i++){
-      if(patterns[i].re.test(t)){
-        var found = subjects.find(function(s){ return s.name.indexOf(patterns[i].key)!==-1; });
-        if(found) return found.id;
-      }
-    }
-    return '';
-  }
-  document.getElementById('lecTitleOnlyBtn').addEventListener('click', function(){
-    openModal(
-      '<h3>제목만 빠르게 등록</h3>'
-      + '<div class="save-hint" style="margin-bottom:10px;line-height:1.7;">유튜브 링크가 아직 없어도 괜찮아요. 제목을 한 줄에 하나씩 붙여넣으면, 제목에 "1과목/2과목/3과목"이 들어있는 경우 자동으로 그 과목으로 분류돼요. 나머지는 미분류로 등록되고, 나중에 각 강의를 볼 때 링크만 하나씩 추가하면 돼요.</div>'
-      + '<div class="field"><label>강의 제목 목록</label><textarea id="titleOnlyArea" style="min-height:220px;font-family:var(--font-mono);font-size:12px;" placeholder="1강. 기본개념...(1과목)&#10;2강. CPU...(1과목)"></textarea></div>'
-      + '<div class="modal-close-row"><button class="btn" id="modalCancel">취소</button><button class="btn btn-primary" id="modalSave">일괄 등록</button></div>'
-    , true);
-    document.getElementById('modalCancel').addEventListener('click', closeModal);
-    document.getElementById('modalSave').addEventListener('click', function(){
-      var lines = document.getElementById('titleOnlyArea').value.split('\n').map(function(l){return l.trim();}).filter(Boolean);
-      var added = 0;
-      lines.forEach(function(title){
-        lectures.push({id:uid('lec'), subjectId:detectSubjectIdFromTitle(title), title:title, videoId:'', order:lectures.length, done:false, watchedAt:null});
-        added++;
-      });
-      saveLectures();
-      closeModal();
-      renderLectureRoom();
-      showToast(added+'개 강의 제목을 등록했어요. 이제 각 강의를 누르면 링크를 추가할 수 있어요.');
-    });
-  });
-
   document.getElementById('lecImportBtn').addEventListener('click', openImportModal);
 
   function openImportModal(){
@@ -1670,7 +1801,7 @@
       area.querySelectorAll('.imp-check').forEach(function(chk){
         if(!chk.checked) return;
         var it = importedItems[parseInt(chk.dataset.impIdx,10)];
-        lectures.push({id:uid('lec'), subjectId:it.subjectId, title:it.title, videoId:it.videoId, order:lectures.length, done:false, watchedAt:null});
+        lectures.push({id:uid('lec'), subjectId:it.subjectId, title:it.title, videoId:it.videoId, order:lectures.length, done:false, watchedAt:null, notes:''});
         added++;
       });
       saveLectures();
@@ -1982,6 +2113,7 @@
               if(playingLectureId===l.id) updatePlayerActionButtons(l);
             }
           }
+          if(chk.checked){ maybeUpdateGoalsFromCompletion(t.subjectId, t.text); }
           afterChange();
         }
       });
@@ -2092,28 +2224,20 @@
 
   function renderSessionLog(){
     var listEl = document.getElementById('sessionLog');
-    if(!sessions.length){
-      listEl.innerHTML = '<div class="empty-state" style="padding:20px 0;">아직 기록된 공부 세션이 없어요.</div>';
+    var todaySessions = sessions.filter(function(s){return s.date===todayStr();}).slice().sort(function(a,b){return (b.endedAt||'').localeCompare(a.endedAt||'');});
+    if(!todaySessions.length){
+      listEl.innerHTML = '<div class="empty-state" style="padding:20px 0;">오늘 기록된 공부 세션이 아직 없어요.</div>';
     } else {
-      var byDate = {};
-      sessions.slice().sort(function(a,b){return (b.endedAt||'').localeCompare(a.endedAt||'');}).forEach(function(s){
-        byDate[s.date] = byDate[s.date] || [];
-        byDate[s.date].push(s);
-      });
-      var dates = Object.keys(byDate).sort().reverse();
-      listEl.innerHTML = dates.map(function(d){
-        var daySessions = byDate[d];
-        var total = daySessions.reduce(function(a,s){return a+s.durationSec;},0);
-        return '<div class="session-day-group">'
-          + '<div class="session-day-label">'+formatDateLabel(d)+' · 총 '+Math.round(total/60)+'분</div>'
-          + daySessions.map(function(s){
-              var subj = subjectById(s.subjectId);
-              return '<div class="session-row"><span class="session-subject">'+(subj?escapeHtml(subj.name):'미분류')+'</span>'
-                + '<span><span class="session-dur">'+Math.round(s.durationSec/60)+'분</span>'
-                + '<button class="session-del" data-del-sess="'+s.id+'">✕</button></span></div>';
-            }).join('')
-          + '</div>';
-      }).join('');
+      var total = todaySessions.reduce(function(a,s){return a+s.durationSec;},0);
+      listEl.innerHTML = '<div class="session-day-group">'
+        + '<div class="session-day-label">오늘 총 '+Math.round(total/60)+'분</div>'
+        + todaySessions.map(function(s){
+            var subj = subjectById(s.subjectId);
+            return '<div class="session-row"><span class="session-subject">'+(subj?escapeHtml(subj.name):'미분류')+'</span>'
+              + '<span><span class="session-dur">'+Math.round(s.durationSec/60)+'분</span>'
+              + '<button class="session-del" data-del-sess="'+s.id+'">✕</button></span></div>';
+          }).join('')
+        + '</div>';
       listEl.querySelectorAll('[data-del-sess]').forEach(function(btn){
         btn.addEventListener('click', function(){
           sessions = sessions.filter(function(x){return x.id!==btn.dataset.delSess;});
@@ -2557,6 +2681,19 @@
     reader.readAsText(file);
   });
 
+  /* ================= DAY ROLLOVER WATCHER ================= */
+  var lastKnownDateStr = todayStr();
+  setInterval(function(){
+    var cur = todayStr();
+    if(cur !== lastKnownDateStr){
+      lastKnownDateStr = cur;
+      selectedTodoDate = cur;
+      renderDashboard();
+      renderSessionLog();
+      if(document.getElementById('view-planner').classList.contains('active')) renderTodos();
+    }
+  }, 30000);
+
   /* ================= INIT ================= */
   function renderAll(){
     renderDashboard();
@@ -2574,6 +2711,7 @@
   function init(){
     subjects = getLocal('subjects', null);
     if(!subjects){ subjects = DEFAULT_SUBJECTS.slice(); saveSubjects(); }
+    subjects.forEach(function(s){ if(!s.studyPlan) s.studyPlan = []; });
     lectures = getLocal('lectures', []);
     todos = getLocal('todos', []);
     sessions = getLocal('sessions', []);
